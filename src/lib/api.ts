@@ -20,9 +20,9 @@ export * from './models';
 
 // Auth
 // @ts-ignore
-const APP_ID = import.meta.env.VITE_APPLICATION_ID;
+let APP_ID = import.meta.env.VITE_APPLICATION_ID;
 // @ts-ignore
-const LOGIN_URL = `${import.meta.env.VITE_AUTH_BASE_URL}/login?appId=${APP_ID}`;
+let LOGIN_URL = `${import.meta.env.VITE_AUTH_BASE_URL}/login?appId=${APP_ID}&error`;
 const SIGN_UP =  `/v1/users/public/sign-up`;
 const AUTHORIZE_URL = `/v1/auth/users/authorize/endpoint/${APP_ID}`;
 const EXCHANGE_CODE_URL = `/v1/auth/users/token/endpoint/${APP_ID}`;

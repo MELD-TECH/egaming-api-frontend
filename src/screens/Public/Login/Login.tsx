@@ -1,15 +1,15 @@
 import React, {useEffect, useRef, useState} from "react";
-import {useNavigate, useSearchParams} from "react-router-dom";
-// import { Button } from "../../components/ui/button";
-// import { Input } from "../../components/ui/input";
+import { useNavigate, useSearchParams} from "react-router-dom";
 import { Label } from "../../../components/ui/label.tsx";
 import { Checkbox } from "../../../components/ui/checkbox.tsx";
 import { EyeIcon, EyeOffIcon, MailIcon, LockIcon } from "lucide-react";
-import {LOGIN_URL} from "../../../lib/api.ts";
+import {clearAllAppInfo, LOGIN_URL, setAppInfo} from "../../../lib/api.ts";
 import {CInput} from "../../../components/form/CInput.tsx";
 import {LoadingButton} from "../../../components/feedback/LoadingButton.tsx";
 import {AlertCard} from "../../../components/feedback/AlertCard.tsx";
 import {useToast} from "../../../components/feedback/Toast.tsx";
+import { getAppInfo } from "../../../lib/httpClient.ts";
+
 
 export const Login = (): JSX.Element => {
   const [searchParams] = useSearchParams();
@@ -20,6 +20,8 @@ export const Login = (): JSX.Element => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [disabled, setDisabled] = useState(false);
+  const [notReady, setNotReady] = useState(true);
+  const [hasError, setHasError] = useState(false);
   const navigate = useNavigate();
 
   const handleSignUpClick = () => {
@@ -34,6 +36,7 @@ export const Login = (): JSX.Element => {
   }
 
   const handleSubmit = (e: React.FormEvent) => {
+      clearAllAppInfo();
       setDisabled(!disabled);
       if(email === "" ) {
           e.preventDefault();
@@ -49,6 +52,23 @@ export const Login = (): JSX.Element => {
       }
       handleLogin();
   }
+
+    useEffect(() => {
+        // This solves the auth code from the auth url issue
+        const isApp = getAppInfo('isApp');
+        // This help solves the auth code needed after a failed login attempt
+        setHasError(getAppInfo('hasError') !== null);
+        const isErr = searchParams.get('error') !== null;
+        if(isErr) {
+            setAppInfo("hasError", "true");
+            navigate('/');
+        }
+        if(!isApp) {
+            navigate('/');
+        }else {
+            setNotReady(false);
+        }
+    }, []);
 
   // @ts-ignore
     // @ts-ignore
@@ -68,7 +88,8 @@ export const Login = (): JSX.Element => {
           <p className="text-lg text-slate-600 font-normal leading-relaxed">
             Login to manage your account
           </p>
-            <div className={`${searchParams.get('error') !== null? '':'hidden'} items-center justify-center`}>
+            <div className={`${hasError? '':'hidden'} items-center justify-center`}>
+            {/*<div className={`${searchParams.get('error') !== null? '':'hidden'} items-center justify-center`}>*/}
                 <AlertCard intent="error" title="Bad Credentials">
                     The <strong>username</strong> or <strong>Password</strong> provided is incorrect.
                 </AlertCard>
@@ -76,7 +97,11 @@ export const Login = (): JSX.Element => {
         </div>
 
         {/* Form */}
-        <form ref={formRef} className="space-y-6" action={LOGIN_URL} method="POST" onSubmit={handleSubmit}>
+        <form ref={formRef} className="space-y-6"
+              action={LOGIN_URL}
+              // action={searchParams.get('error')? LOGIN_URL + '&error' : LOGIN_URL}
+              method="POST"
+              onSubmit={handleSubmit}>
           {/* Email Field */}
           <div className="space-y-2">
             <Label 
@@ -178,8 +203,7 @@ export const Login = (): JSX.Element => {
           {/* Sign In Button */}
             <LoadingButton type="submit"
                            loading={disabled}
-                           disabled={disabled}
-                           // onClick={handleLogin}
+                           disabled={notReady}
                            className="w-full h-12 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-full tracking-tight transition-all duration-200 shadow-lg hover:shadow-xl">
                 Sign in
             </LoadingButton>
