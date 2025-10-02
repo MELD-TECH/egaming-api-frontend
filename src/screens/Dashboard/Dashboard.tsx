@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { 
   Bell, 
   Search, 
   User, 
   ChevronDown,
   TrendingUp,
-  TrendingDown,
+  // TrendingDown,
   DollarSign,
   Users,
   Activity,
@@ -153,7 +153,7 @@ export const Dashboard = (): JSX.Element => {
 
   return (
     <div className="flex min-h-screen bg-gray-5">
-      <Sidebar 
+      <Sidebar
         isCollapsed={sidebarCollapsed} 
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 
       />

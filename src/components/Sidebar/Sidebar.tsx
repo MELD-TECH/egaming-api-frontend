@@ -10,8 +10,8 @@ import {
   ChevronLeft,
   ChevronRight,
   MapPin,
-  ChevronDown,
-  ChevronUp
+  // ChevronDown,
+  // ChevronUp
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { cn } from '../../lib/utils';
@@ -66,14 +66,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [expandedMenus, setExpandedMenus] = React.useState<string[]>([]);
+  // const [expandedMenus, setExpandedMenus] = React.useState<string[]>([]);
 
   const handleNavigation = (path: string) => {
     navigate(path);
   };
 
   const handleLogout = () => {
-    navigate('/login');
+    navigate('/logout');
   };
 
   const isActiveRoute = (path: string) => {

@@ -1,18 +1,45 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
-import { EyeIcon, EyeOffIcon, LockIcon, ArrowLeft } from "lucide-react";
-import { password as passwordValidator } from "../../components/form/validators"; // <-- add this
+import {useLocation, useNavigate} from "react-router-dom";
+import { Input } from "../../../components/ui/input";
+import { Label } from "../../../components/ui/label";
+import { EyeIcon, EyeOffIcon, LockIcon } from "lucide-react";
+import { password as passwordValidator } from "../../../components/form/validators";
+import {LoadingButton} from "../../../components/feedback/LoadingButton.tsx";
+import { changeUserPassword } from "../../../lib/api.ts";
+import {useToast} from "../../../components/feedback/Toast.tsx"; // <-- add this
 
-export const ChangePassword = (): JSX.Element => {
-    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+// Helper to get email and public id from router state or query
+function useEmailAndPublicIdFromRoute(): { email: string | null; publicId: string } {
+    const navigate = useNavigate();
+    const { state, search } = useLocation();
+    const emailFromState = (state as any)?.email as string | undefined;
+    const idFromState = (state as any)?.ref as string | undefined;
+    const params = new URLSearchParams(search);
+    const emailFromQuery = params.get("email") ?? undefined;
+    const idFromQuery = params.get("id") ?? undefined;
+    const email = emailFromState || emailFromQuery || null;
+    const publicId = idFromState || idFromQuery || null;
+
+    React.useEffect(() => {
+        if (!email && !publicId) {
+            // If user landed here without email and public id, redirect back to reset
+            navigate("/reset-password");
+        }
+    }, [email, navigate]);
+
+    // @ts-ignore
+    return {email: email, publicId: publicId};
+}
+
+export const ChangeUserPassword = (): JSX.Element => {
+    const {email, publicId } = useEmailAndPublicIdFromRoute();
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [currentPassword, setCurrentPassword] = useState("");
+    const [currentPassword, ] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [disabled, setDisabled] = useState(false);
+    const { show } = useToast();
 
     // NEW: error state
     const [newPasswordError, setNewPasswordError] = useState<string | null>(null);
@@ -20,15 +47,10 @@ export const ChangePassword = (): JSX.Element => {
 
     const navigate = useNavigate();
 
-    const handleBackClick = () => {
-        navigate('/settings');
-    };
-
-    // NEW: on-change validators
     const validateNewPassword = (value: string) => {
         const err = passwordValidator(8)(value);
+
         setNewPasswordError(err);
-        // Also keep confirm in sync
         if (confirmPassword) {
             setConfirmPasswordError(value === confirmPassword ? null : "Passwords do not match");
         }
@@ -38,7 +60,7 @@ export const ChangePassword = (): JSX.Element => {
         setConfirmPasswordError(value === base ? null : "Passwords do not match");
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const pwErr = passwordValidator(8)(newPassword);
         const confErr = newPassword === confirmPassword ? null : "Passwords do not match";
@@ -49,7 +71,18 @@ export const ChangePassword = (): JSX.Element => {
         if (pwErr || confErr) return; // prevent submit
 
         // Handle password change logic here
-        console.log("Password change submitted");
+        setDisabled(!disabled);
+        try {
+            const resp = await changeUserPassword(publicId, { newPassword, currentPassword});
+            const updatedPwd = resp?.data;
+            if (updatedPwd?.data?.includes(email as string)) {
+                navigate('/', { replace: true, state: { email: null, ref: null } });
+            }
+        }catch (e) {
+            console.log(e);
+            show({ type: "error", title: "Invalid code", message: "Please check the 6-digit code and try again." });
+            setDisabled(false);
+        }
     };
 
     const disableSubmit = !!(passwordValidator(8)(newPassword) || newPassword !== confirmPassword);
@@ -57,55 +90,19 @@ export const ChangePassword = (): JSX.Element => {
     return (
         <div className="min-h-screen bg-gray-5 flex items-center justify-center px-4">
             <div className="w-full max-w-md">
-                {/* Back Button */}
-                <div className="mb-6">
-                    <Button
-                        variant="ghost"
-                        onClick={handleBackClick}
-                        className="flex items-center gap-2 text-gray-60 hover:text-gray-80 p-0 h-auto"
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                        Back to Settings
-                    </Button>
-                </div>
-
                 {/* Logo */}
                 <div className="text-center mb-8">
-                    <div className="w-12 h-14 mx-auto mb-6 bg-gradient-to-b from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
-                        <div className="w-8 h-10 bg-white rounded-sm opacity-90"></div>
+                    <div className="w-12 h-14 mx-auto mb-6 rounded-lg flex items-center justify-center">
+                        <div className="relative w-[45.38px] h-[49px] bg-[url(/vector.png)] bg-[100%_100%]" />
                     </div>
                     <h1 className="text-3xl font-extrabold text-gray-80 mb-2 tracking-tight">Change Password</h1>
-                    <p className="text-lg text-slate-600 font-normal leading-relaxed">Update your account password</p>
+                    <p className="text-lg text-slate-600 font-normal leading-relaxed">Update your account password <br/>
+                        <span className="border text-blue-600">{email}</span>
+                    </p>
                 </div>
 
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Current Password Field */}
-                    <div className="space-y-2">
-                        <Label htmlFor="currentPassword" className="text-sm font-bold text-gray-80 tracking-tight">Current Password</Label>
-                        <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <LockIcon className="h-5 w-5 text-slate-600" />
-                            </div>
-                            <Input
-                                id="currentPassword"
-                                type={showCurrentPassword ? "text" : "password"}
-                                value={currentPassword}
-                                onChange={(e) => setCurrentPassword(e.target.value)}
-                                className="pl-10 pr-10 h-12 bg-white border-gray-30 rounded-full text-slate-600 font-medium tracking-tight focus:border-brand-60 focus:ring-brand-60"
-                                placeholder="Enter current password"
-                                required
-                            />
-                            <button type="button" className="absolute inset-y-0 right-0 pr-3 flex items-center" onClick={() => setShowCurrentPassword(!showCurrentPassword)}>
-                                {showCurrentPassword ? (
-                                    <EyeOffIcon className="h-5 w-5 text-slate-600 hover:text-gray-80 transition-colors" />
-                                ) : (
-                                    <EyeIcon className="h-5 w-5 text-slate-600 hover:text-gray-80 transition-colors" />
-                                )}
-                            </button>
-                        </div>
-                    </div>
-
                     {/* New Password Field */}
                     <div className="space-y-2">
                         <Label htmlFor="newPassword" className="text-sm font-bold text-gray-80 tracking-tight">New Password</Label>
@@ -180,9 +177,13 @@ export const ChangePassword = (): JSX.Element => {
                     </div>
 
                     {/* Change Password Button */}
-                    <Button type="submit" disabled={disableSubmit} className="w-full h-12 bg-primary-500 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary-600 text-white font-bold rounded-full tracking-tight transition-all duration-200 shadow-lg hover:shadow-xl">
+                    <LoadingButton type="submit"
+                                   loading={disabled}
+                                   disabled={disableSubmit}
+                                   onClick={handleSubmit}
+                                   className="w-full h-12 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-full tracking-tight transition-all duration-200 shadow-lg hover:shadow-xl">
                         Change Password
-                    </Button>
+                    </LoadingButton>
                 </form>
 
                 {/* Footer */}

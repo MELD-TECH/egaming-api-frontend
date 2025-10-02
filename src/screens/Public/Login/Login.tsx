@@ -1,31 +1,66 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
-import { Checkbox } from "../../components/ui/checkbox";
+import React, {useEffect, useRef, useState} from "react";
+import {useNavigate, useSearchParams} from "react-router-dom";
+// import { Button } from "../../components/ui/button";
+// import { Input } from "../../components/ui/input";
+import { Label } from "../../../components/ui/label.tsx";
+import { Checkbox } from "../../../components/ui/checkbox.tsx";
 import { EyeIcon, EyeOffIcon, MailIcon, LockIcon } from "lucide-react";
+import {LOGIN_URL} from "../../../lib/api.ts";
+import {CInput} from "../../../components/form/CInput.tsx";
+import {LoadingButton} from "../../../components/feedback/LoadingButton.tsx";
+import {AlertCard} from "../../../components/feedback/AlertCard.tsx";
+import {useToast} from "../../../components/feedback/Toast.tsx";
 
 export const Login = (): JSX.Element => {
+  const [searchParams] = useSearchParams();
+  const formRef = useRef(null);
+  const {show} = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [email, setEmail] = useState("example@gmail.com");
-  const [password, setPassword] = useState("*****************");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [disabled, setDisabled] = useState(false);
   const navigate = useNavigate();
 
   const handleSignUpClick = () => {
     navigate('/register');
   };
 
-  return (
+  const handleLogin = () => {
+      if (formRef.current) {
+          // @ts-ignore
+          formRef.current.requestSubmit(); // Modern browsers
+      }
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+      setDisabled(!disabled);
+      if(email === "" ) {
+          e.preventDefault();
+          setDisabled(false);
+          show({ type: "error", title: "Email is required", message: "Email cannot be empty" });
+          return;
+      }
+      if(password === "") {
+          e.preventDefault();
+          setDisabled(false);
+          show({ type: "error", title: "Password is required", message: "Password cannot be empty" });
+          return;
+      }
+      handleLogin();
+  }
+
+  // @ts-ignore
+    // @ts-ignore
+    return (
     <div className="min-h-screen bg-gray-5 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-12 h-14 mx-auto mb-6 bg-gradient-to-b from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
-            <div className="w-8 h-10 bg-white rounded-sm opacity-90"></div>
+          <div className="w-12 h-14 mx-auto mb-6 rounded-lg flex items-center justify-center">
+              <div className="relative w-[45.38px] h-[49px] bg-[url(/vector.png)] bg-[100%_100%]" />
           </div>
-          
+
           <h1 className="text-3xl font-extrabold text-gray-80 mb-2 tracking-tight">
             Sign In to Your Account
           </h1>
@@ -33,10 +68,15 @@ export const Login = (): JSX.Element => {
           <p className="text-lg text-slate-600 font-normal leading-relaxed">
             Login to manage your account
           </p>
+            <div className={`${searchParams.get('error') !== null? '':'hidden'} items-center justify-center`}>
+                <AlertCard intent="error" title="Bad Credentials">
+                    The <strong>username</strong> or <strong>Password</strong> provided is incorrect.
+                </AlertCard>
+            </div>
         </div>
 
         {/* Form */}
-        <form className="space-y-6">
+        <form ref={formRef} className="space-y-6" action={LOGIN_URL} method="POST" onSubmit={handleSubmit}>
           {/* Email Field */}
           <div className="space-y-2">
             <Label 
@@ -47,18 +87,27 @@ export const Login = (): JSX.Element => {
             </Label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <MailIcon className="h-5 w-5 text-slate-600" />
+                <MailIcon className="h-5 w-5text-slate-600" />
               </div>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="pl-10 h-12 bg-white border-gray-30 rounded-full text-slate-600 font-medium tracking-tight focus:border-brand-60 focus:ring-brand-60"
-                placeholder="example@gmail.com"
-              />
+                <CInput
+                    id="email"
+                    name="username"
+                    label="-"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    pattern={"^\\S+@\\S+\\.\\S+$"}
+                    patternMessage="Please enter a valid email address"
+                    info="We’ll never share your email."
+                    className="pl-10 h-12 bg-white border-gray-30 rounded-full text-slate-600 font-medium tracking-tight focus:border-brand-60 focus:ring-brand-60"
+                    validate={(v) => (v.endsWith(".con") ? "Did you mean .com?" : null)}
+                />
             </div>
           </div>
+
+            {/*<CInput name="email" label="Email" validate={[required(), email()]} />*/}
 
           {/* Password Field */}
           <div className="space-y-2">
@@ -72,14 +121,19 @@ export const Login = (): JSX.Element => {
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <LockIcon className="h-5 w-5 text-slate-600" />
               </div>
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="pl-10 pr-10 h-12 bg-white border-gray-30 rounded-full text-slate-600 font-medium tracking-tight focus:border-brand-60 focus:ring-brand-60"
-                placeholder="*****************"
-              />
+                <CInput
+                    id="password"
+                    name="password"
+                    label="-"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="*****************"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    info="We’ll never share your password."
+                    className="pl-10 h-12 bg-white border-gray-30 rounded-full text-slate-600 font-medium tracking-tight focus:border-brand-60 focus:ring-brand-60"
+                    validate={(v) => (v.toString() === "" ? "Password empty" : null)}
+                />
               <button
                 type="button"
                 className="absolute inset-y-0 right-0 pr-3 flex items-center"
@@ -122,18 +176,15 @@ export const Login = (): JSX.Element => {
           </div>
 
           {/* Sign In Button */}
-          <Button
-            type="submit"
-            onClick={(e) => {
-              e.preventDefault();
-              navigate('/dashboard');
-            }}
-            className="w-full h-12 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-full tracking-tight transition-all duration-200 shadow-lg hover:shadow-xl"
-          >
-            Sign In
-          </Button>
+            <LoadingButton type="submit"
+                           loading={disabled}
+                           disabled={disabled}
+                           // onClick={handleLogin}
+                           className="w-full h-12 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-full tracking-tight transition-all duration-200 shadow-lg hover:shadow-xl">
+                Sign in
+            </LoadingButton>
 
-          {/* Don't have account */}
+          {/* Don't have an account */}
           <div className="text-center space-y-4">
             <p className="text-sm font-bold text-gray-80 tracking-tight">
               Don't have an account?{" "}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   Bell, 
@@ -10,10 +10,10 @@ import {
   Save,
   X,
   Building,
-  Mail,
-  Phone,
-  Calendar,
-  MapPin,
+  // Mail,
+  // Phone,
+  // Calendar,
+  // MapPin,
   FileText,
   DollarSign,
   Users,
@@ -22,7 +22,7 @@ import {
   XCircle,
   Clock,
   AlertTriangle,
-  Eye,
+  // Eye,
   Download,
   MoreHorizontal,
   Trash2,
@@ -33,7 +33,7 @@ import {
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
+// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { 
   Dialog, 
   DialogContent, 
@@ -212,6 +212,30 @@ const getStatusColor = (status: string) => {
       return "bg-gray-100 text-gray-800";
   }
 };
+
+// Example toast and alert card usage
+// import { AlertCard } from "../../components/feedback/AlertCard";
+// import { useToast } from "../../components/feedback/Toast";
+//
+// function SomeScreen() {
+//     const { show } = useToast();
+//
+//     const onSave = async () => {
+//         try {
+//             // ...call API
+//             show({ type: "success", title: "Saved", message: "Your changes were saved." });
+//         } catch (e: any) {
+//             show({ type: "error", title: "Error", message: e?.message || "Unable to save." });
+//         }
+//     };
+//
+//     return (
+//         <div className="space-y-3">
+//             <AlertCard intent="info" title="Heads up">This is inline information.</AlertCard>
+//             <button onClick={onSave}>Trigger Toast</button>
+//         </div>
+//     );
+// }
 
 export const OperatorDetails = (): JSX.Element => {
   const [isEditing, setIsEditing] = useState(false);
