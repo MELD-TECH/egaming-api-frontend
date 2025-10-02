@@ -29,3 +29,26 @@ If you are satisfied with the result, you can finally build the project for rele
 ```
 npm run build
 ```
+
+## Network layer (Axios)
+A production-grade HTTP client is provided at `src/lib/httpClient.ts` and high-level helpers in `src/lib/api.ts`.
+
+- Base URL: configure via `.env` as `VITE_API_BASE_URL=https://api.example.com` (defaults to `https://example.com`).
+- Auth: set a token with `setAuthToken(token)`; it will be sent as `Authorization: Bearer <token>`.
+- Errors: all errors reject with a unified `ApiError` containing `status`, `code`, `details`, and optional `requestId`.
+- Retries: GET/HEAD/OPTIONS retry up to 2 times on network timeouts with exponential backoff.
+- Cancellation: pass an `AbortSignal` in options (`{ signal }`).
+- Logging: minimal request/response logs in dev mode.
+
+### Quick usage
+```ts
+import { httpGet, httpPost, setAuthToken } from './src/lib/api';
+
+setAuthToken('your_jwt');
+
+// GET example
+const { data } = await httpGet<{ items: string[] }>("/items", { params: { page: 1 } });
+
+// POST example
+await httpPost("/auth/login", { email: "a@b.com", password: "secret" }, { withAuth: false });
+```
