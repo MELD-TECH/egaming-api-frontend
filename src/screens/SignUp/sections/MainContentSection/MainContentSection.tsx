@@ -1,5 +1,5 @@
 import React from "react";
-import { Button } from "../../../../../components/ui/button.tsx";
+import { Button } from "../../../../components/ui/button";
 
 const footerLinks = [
   { text: "Privacy Policy", href: "#" },

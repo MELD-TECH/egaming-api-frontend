@@ -1,5 +1,6 @@
-import { MainContentSection } from "./sections/MainContentSection/MainContentSection.tsx";
-import { RegistrationFormSection } from "./sections/RegistrationFormSection/RegistrationFormSection.tsx";
+import React from "react";
+import { MainContentSection } from "./sections/MainContentSection/MainContentSection";
+import { RegistrationFormSection } from "./sections/RegistrationFormSection/RegistrationFormSection";
 
 export const SignUp = (): JSX.Element => {
   return (

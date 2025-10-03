@@ -10,10 +10,10 @@ import {
 } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "../../../../../components/ui/button.tsx";
-import { Checkbox } from "../../../../../components/ui/checkbox.tsx";
-import { Input } from "../../../../../components/ui/input.tsx";
-import { Label } from "../../../../../components/ui/label.tsx";
+import { Button } from "../../../../components/ui/button";
+import { Checkbox } from "../../../../components/ui/checkbox";
+import { Input } from "../../../../components/ui/input";
+import { Label } from "../../../../components/ui/label";
 
 const formFields = [
   {
