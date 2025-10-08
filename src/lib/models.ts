@@ -95,7 +95,7 @@ export interface UserAccountRequest {
     lastName: string;
     password: string;
     phone: string;
-    // role?: string;
+    role: string;
     appId: string;
 }
 
