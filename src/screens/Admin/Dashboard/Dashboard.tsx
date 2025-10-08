@@ -17,9 +17,9 @@ import {
   ArrowDownRight
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Sidebar } from "../../components/Sidebar";
+import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
+import { Sidebar } from "../../../components/Sidebar";
 
 const dashboardStats = [
   {
@@ -164,7 +164,7 @@ export const Dashboard = (): JSX.Element => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <h1 className="text-xl md:text-2xl font-bold text-gray-80">
-                My Dashboard
+                Dashboard
               </h1>
             </div>
             

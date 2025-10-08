@@ -1,6 +1,15 @@
 // Centralized request/response payload models for API calls
 
 // Auth
+import {Lga} from "./appModels.ts";
+
+export interface SignerConfig {
+    secret: string;               // client secret or per-session key
+    saltBytes: number;           // default 16
+    saltFormat: 'hex'|'base64';  // default 'hex'
+    tsSkewSecs: number;          // acceptable skew (for validation, optional)
+}
+
 export interface LoginRequest {
   email: string;
   password: string;
@@ -95,4 +104,108 @@ export interface UserAccountResponse {
       publicId: string;
       message?: string;
   }
+}
+
+export interface OperatorVerificationRequest {
+    firstname: string;
+    lastname: string;
+    phone_no: string;
+    regNumber: string;
+}
+
+export interface OperatorVerificationResponse {
+    data: {
+        idNumber: string;
+        name: string;
+        address: string;
+        type: string;
+        contact: string;
+        details: {
+            id: number;
+            cac?: {
+                lga: string;
+                city: string;
+                state: string;
+                rcNumber: string;
+                affiliates: string;
+                companyName: string;
+                companyType: string;
+                companyEmail: string;
+                shareCapital: number;
+                branchAddress: string;
+                classification: string;
+                registrationDate: string;
+                headOfficeAddress: string;
+                shareCapitalInWords: string;
+            }
+            nin?: {
+                nin: string;
+                firstname: string;
+                lastname: string;
+                middlename: string;
+                gender: string;
+                phone: string;
+                picture: string;
+                birthdate: string;
+                residence: {
+                    lga: string;
+                    state: string;
+                    address1: string;
+                }
+            }
+            status: {
+                state: string;
+                status: string;
+            }
+        }
+        createdOn: string;
+    }
+}
+
+export interface LgaResponse {
+    data: {
+        page: number;
+        size: number;
+        totalPages: number;
+        total: number;
+        previous: number;
+        next: number;
+        data: [ Lga ]
+    }
+}
+
+export interface CompanyRequest {
+    registrationNumber: string;
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+    lga: string;
+}
+
+export interface CompanyResponse {
+    data: {
+        publicId: string;
+        registrationNumber: string;
+        name: string;
+        email: string;
+        phone: string;
+        address: string;
+        lga: string;
+    }
+}
+
+export interface CRoleUpdateResponse {
+    data: {
+        firstName: string;
+         middleName: string;
+         lastName: string;
+         email: string;
+         phoneNumber: string;
+         createdOn: string;
+         settings: {
+             role: string;
+             isEmailVerified: boolean;
+         }
+    }
 }

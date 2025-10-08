@@ -1,4 +1,6 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import {SignerConfig} from "./models.ts";
+import {generateSalt, signRequest} from "./crypto.ts";
 
 export type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete' | 'head' | 'options';
 
@@ -28,6 +30,23 @@ export class ApiError<T = any> extends Error {
         this.details = opts.details;
         this.requestId = opts.requestId;
     }
+}
+
+export async function buildSignedHeaders(
+    publicId: string,
+    username: string,        // e.g. '/v1/users/permissions'
+    role: string,     // e.g. 'page=1'
+    cfg: SignerConfig
+) {
+    const salt = generateSalt(cfg.saltBytes ?? 16, cfg.saltFormat ?? 'base64') as string;
+    const timestampMilliseconds = Date.now().toString();
+    const signature = await signRequest({ publicId, username, role, salt }, cfg.secret, 'base64');
+
+    return {
+        'salt': salt,
+        'X-Timestamp': timestampMilliseconds,
+        'hash': signature,
+    } as Record<string, string>;
 }
 
 // @ts-ignore
