@@ -129,12 +129,13 @@ export const RegistrationFormSection = (): JSX.Element => {
 
         setDisabled(!disabled);
         try {
+            // @ts-ignore
             const resp = await signUpUser({
                 email, username: email,
                 firstName, lastName,
                 password: newPassword,
                 phone: phonenUmber,
-                role: "OPERATOR",
+                // role: null,
                 appId: APP_ID });
             const neUser = resp?.data;
             if (neUser?.data) {
