@@ -135,7 +135,7 @@ export const RegistrationFormSection = (): JSX.Element => {
                 firstName, lastName,
                 password: newPassword,
                 phone: phonenUmber,
-                // role: null,
+                role: 'STANDARD',
                 appId: APP_ID });
             const neUser = resp?.data;
             if (neUser?.data) {
