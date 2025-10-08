@@ -90,10 +90,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="flex items-center justify-between p-4 border-b border-gray-20">
         {!isCollapsed && (
           <div className="flex items-center gap-3">
-            <div className="w-8 h-10 bg-gradient-to-b from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <div className="w-6 h-8 bg-white rounded-sm opacity-90"></div>
-            </div>
-            <div>
+              <div className="w-12 h-14 mx-auto mb-6 rounded-lg flex items-center justify-center">
+                  <div className="relative w-[45.38px] h-[49px] bg-[url(/vector.png)] bg-[100%_100%]" />
+              </div>
+              <div>
               <h1 className="text-lg font-bold text-gray-80">ESGC</h1>
               <p className="text-xs text-gray-60">Game Staking</p>
             </div>

@@ -3,7 +3,19 @@
  * Add domain-specific functions here, e.g., auth, profile, etc.
  */
 
-import { httpGet, httpPost, httpPut, httpPatch, httpDelete, ApiError, setAuthToken, clearAuthToken, setAppInfo, clearAllAppInfo }
+import {
+    httpGet,
+    httpPost,
+    httpPut,
+    httpPatch,
+    httpDelete,
+    ApiError,
+    setAuthToken,
+    clearAuthToken,
+    setAppInfo,
+    clearAllAppInfo,
+    buildSignedHeaders
+}
     from './httpClient';
 import type { ApiResponse } from './httpClient';
 import {
@@ -11,7 +23,8 @@ import {
     ChangePasswordRequest,
     ChangePasswordResponse,
     AuthUrlResponse, EmptyRequest, UserPermissionResponse, ProfileAccount, PasswordResetResponse,
-    OtpVerificationResponse, UserAccountResponse, UserAccountRequest
+    OtpVerificationResponse, UserAccountResponse, UserAccountRequest, OperatorVerificationRequest,
+    OperatorVerificationResponse, LgaResponse, CompanyRequest, CompanyResponse, SignerConfig
 } from './models';
 
 export { httpGet, httpPost, httpPut, httpPatch, httpDelete, ApiError, setAuthToken, clearAuthToken, setAppInfo, clearAllAppInfo  };
@@ -23,6 +36,10 @@ export * from './models';
 let APP_ID = import.meta.env.VITE_APPLICATION_ID;
 // @ts-ignore
 let LOGIN_URL = `${import.meta.env.VITE_AUTH_BASE_URL}/login?appId=${APP_ID}&error`;
+// @ts-ignore
+const STATE_CODE = import.meta.env.VITE_STATE_CODE;
+// @ts-ignore
+const SERVER_SECRET_KEY = import.meta.env.VITE_SERVER_SK;
 const SIGN_UP =  `/v1/users/public/sign-up`;
 const AUTHORIZE_URL = `/v1/auth/users/authorize/endpoint/${APP_ID}`;
 const EXCHANGE_CODE_URL = `/v1/auth/users/token/endpoint/${APP_ID}`;
@@ -35,9 +52,14 @@ const PASSWORD_RESET_VERIFY_OTP =  `/v1/users/verify/otp/`;
 const PASSWORD_RESET_OTP =  `/v1/users/public/email/`;
 const PASSWORD_RESET_SEND_OTP =  `/send/otp`;
 const PASSWORD_CHANGE =  `/password/publicId/`;
+const OPERATOR_VERIFICATION_URL =  `/v1/users/verify/identity?type=`;
+const GET_LGA_URL =  `/region/api/v1/lgas?stateCode=${STATE_CODE}&size=`;
+const OPERATOR_URL =  `/platform/api/v1/operators`;
+const CHANGE_ROLE_URL =  `/v1/users/role/change`;
 
 export { LOGIN_URL };
 export { APP_ID };
+export { SERVER_SECRET_KEY };
 
 export async function getAuthorizerUrl() {
   return httpGet<AuthUrlResponse>(AUTHORIZE_URL, { withAuth: false, base: 'apiV1' });
@@ -80,4 +102,32 @@ export async function fetchProfile() {
 // User Sign Up
 export async function signUpUser(body: UserAccountRequest) {
   return httpPost<UserAccountResponse, UserAccountRequest>(SIGN_UP, body, { base: 'apiV1', withAuth: false });
+}
+
+// Verify Operator
+export async function verifyBusinessRegistration(body: OperatorVerificationRequest, type: string) {
+  return httpPost<OperatorVerificationResponse, OperatorVerificationRequest>(`${OPERATOR_VERIFICATION_URL}${type}`, body, { base: 'apiV1', withAuth: false });
+}
+
+// Get Local Government Areas
+export async function getLGAs(size: number) {
+    return httpGet<LgaResponse>(`${GET_LGA_URL}${size}`, { base: 'api', withAuth: false });
+}
+
+// Add New Operator
+export async function addOperator(body: CompanyRequest) {
+    return httpPost<CompanyResponse, CompanyRequest>(OPERATOR_URL, body,{ base: 'api', withAuth: false });
+}
+
+// Change User Role
+export async function requestUserRoleChange(publicId: string, username: string) {
+    const cfg: SignerConfig = {
+        secret: SERVER_SECRET_KEY,
+        saltBytes: 16,
+        saltFormat: 'base64',
+        tsSkewSecs: 0
+    }
+    // @ts-ignore
+    const headers = await buildSignedHeaders(publicId, username, 'STANDARD', cfg);
+    return httpPut<CompanyResponse>(`${CHANGE_ROLE_URL}`, {},{ base: 'apiV1', headers });
 }

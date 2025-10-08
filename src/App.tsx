@@ -3,7 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Login } from './screens/Public/Login/Login';
 import { SignUp } from './screens/Public/SignUp/SignUp';
 import { ResetPassword } from './screens/Public/ResetPassword/ResetPassword';
-import { Dashboard } from './screens/Dashboard/Dashboard';
+import { Dashboard } from './screens/Admin/Dashboard/Dashboard';
+import { Dashboard as AppDashboard } from './screens/Dashboard/Dashboard';
 import { Report } from './screens/Report/Report';
 import { Operator } from './screens/Operator/Operator';
 import { OperatorDetails } from './screens/OperatorDetails/OperatorDetails';
@@ -21,6 +22,9 @@ import {ToastProvider} from "./components/feedback/Toast.tsx";
 import {OtpVerify} from "./screens/Auth/OtpVerify/OtpVerify.tsx";
 import {ChangeUserPassword} from "./screens/Public/ChangeUserPassword";
 import {EmailActivate} from "./screens/Auth/EmailActivate/EmailActivate.tsx";
+import {Adjudicator} from "./screens/Adjudicator";
+import {RequirePermission} from "./components/auth/RequirePermission.tsx";
+import {RolePromoter} from "./screens/App/RolePromoter";
 
 export const App: React.FC = () => {
     return (
@@ -39,7 +43,12 @@ export const App: React.FC = () => {
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/verify-otp" element={<OtpVerify />} />
                 <Route path="/verify/email" element={<EmailActivate />} />
-                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/admin/dashboard" element={
+                    <RequirePermission anyOf={["CAN_VIEW_DASHBOARD"]}>
+                        <Dashboard />
+                    </RequirePermission>
+                } />
+                <Route path="/app/dashboard" element={<AppDashboard />} />
                 <Route path="/reports" element={<Report />} />
                 <Route path="/operators" element={<Operator />} />
                 <Route path="/operator-details/:id" element={<OperatorDetails />} />
@@ -48,6 +57,8 @@ export const App: React.FC = () => {
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/change-password" element={<ChangePassword />} />
                 <Route path="/change/password" element={<ChangeUserPassword />} />
+                <Route path="/finalize/login" element={<Adjudicator />} />
+                <Route path="/operator/setup" element={<RolePromoter />} />
               </Routes>
             </Router>
         </ToastProvider>

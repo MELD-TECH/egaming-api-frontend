@@ -70,7 +70,6 @@ export const Login = (): JSX.Element => {
         }
     }, []);
 
-  // @ts-ignore
     // @ts-ignore
     return (
     <div className="min-h-screen bg-gray-5 flex items-center justify-center px-4">
