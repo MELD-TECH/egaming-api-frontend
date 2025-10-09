@@ -19,7 +19,6 @@ export const Profile = () => {
                 if(users) {
                     setAppInfo('profile', JSON.stringify(users?.data));
                     navigate('/finalize/login', {replace: true});
-                    // navigate('/dashboard', {replace: true});
                 }
             } catch (e) {
                 // Optionally: show an error or fallback UI

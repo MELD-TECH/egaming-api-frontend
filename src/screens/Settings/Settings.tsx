@@ -1,57 +1,65 @@
-import React, { useState } from "react";
-import { 
-  Bell, 
-  Search, 
-  User, 
-  ChevronDown,
-  Save,
-  Eye,
-  EyeOff,
-  Lock,
-  Mail,
-  Phone,
-  UserIcon,
-  Building,
-  MapPin,
-  Shield,
-  Key,
-  Smartphone,
-  Globe,
-  CreditCard,
-  Palette,
-  Moon,
-  Sun,
-  Volume2,
-  VolumeX,
-  Camera,
-  Upload,
-  Edit,
-  Check,
-  X
+import {useEffect, useState} from "react";
+import {
+    Bell,
+    Search,
+    // User,
+    ChevronDown,
+    Save,
+    Eye,
+    EyeOff,
+    Upload,
 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Checkbox } from "../../components/ui/checkbox";
 import { Sidebar } from "../../components/Sidebar";
+import {getProfile } from "../../lib/checkPrivilege.ts";
+import {UserProfile} from "../../lib/appModels.ts";
+import {getAvatarProps} from "../../lib/utils.ts";
+import {LoadingButton} from "../../components/feedback/LoadingButton.tsx";
+import {
+    changeLoginUserPassword,
+    ChangePasswordRequest,
+    fetchProfile,
+    ProfileUpdateRequest,
+    setAppInfo,
+    updateProfile
+} from "../../lib/api.ts";
+import {useToast} from "../../components/feedback/Toast.tsx";
+import {password as passwordValidator} from "../../components/form/validators.ts";
 
 export const Settings = (): JSX.Element => {
+  const { show } = useToast();
+
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [submittingProfile, setSubmittingProfile] = useState(false);
+  const [submittingPwd, setSubmittingPwd] = useState(false);
+
+    // NEW: error state
+    const [newPasswordError, setNewPasswordError] = useState<string | null>(null);
+    const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
 
   const [profileData, setProfileData] = useState({
-    firstName: "John",
-    lastName: "Smith",
-    email: "john.smith@esgc.com",
-    phone: "801 234 5678",
-    jobTitle: "System Administrator",
-    department: "Management",
-    organization: "ESGC Game Staking",
-    location: "Lagos, Nigeria"
+    publicId: "",
+    firstName: "",
+    middleName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    jobTitle: "",
+    picture: "",
+    settings: {
+        role: "",
+        isEmailVerified: false,
+    }
   });
+
+    const nameOrEmail = `${profileData?.firstName || ""} ${profileData?.lastName || ""}`.trim() || profileData?.email;
+    const { initials, bgClass, textClass } = getAvatarProps(nameOrEmail);
 
   const [securityData, setSecurityData] = useState({
     currentPassword: "",
@@ -73,13 +81,106 @@ export const Settings = (): JSX.Element => {
     }));
   };
 
-  const handleSaveProfile = () => {
-    console.log("Saving profile:", profileData);
+  const handleSaveProfile = async () => {
+      setSubmittingProfile(true);
+      // console.log("Saving profile:", profileData);
+      const id = profileData.publicId;
+      const request: ProfileUpdateRequest = {
+          profile: {
+              firstName: profileData.firstName,
+              middleName: profileData.middleName,
+              lastName: profileData.lastName,
+              email: profileData.email,
+              phoneNumber: profileData.phone,
+              profilePicture: profileData.picture,
+              settings: profileData.settings
+          }
+      }
+
+      try {
+          const resp = await updateProfile(id, request);
+          const update = resp?.data;
+          if(update?.data) {
+              const profileResp = await fetchProfile();
+              const users = profileResp?.data;
+              if(users) {
+                  setAppInfo('profile', JSON.stringify(users?.data));
+                  show({ title: "Profile Update successful", message: "The profile updated successfully.", type: "success" });
+              }
+              else {
+                  show({ title: "Fetch Profile failed", message: "The profile fetching failed.", type: "error" });
+              }
+          }else {
+              show({ title: "Profile Update failed", message: "The profile update failed.", type: "error" });
+          }
+      }catch (e) {
+        show({ title: "Failed Profile Updating", message: "The profile could not be updated.", type: "error" });
+      }finally {
+          setSubmittingProfile(false);
+      }
   };
 
-  const handleSaveSecurity = () => {
-    console.log("Saving security settings:", securityData);
+  const handleSaveSecurity = async () => {
+    if(!securityData.currentPassword.trim()) {
+        show({ title: "Invalid Password", message: "Please enter your current password.", type: "error" });
+        return;
+    }
+      setSubmittingPwd(true);
+    const request: ChangePasswordRequest = {
+        currentPassword: securityData.currentPassword,
+        newPassword: securityData.newPassword
+    }
+
+    try {
+        const resp = await changeLoginUserPassword(request);
+        const passwd = resp?.data;
+        if(passwd?.data) {
+            show({ title: "Password Updated", message: "Your password has been updated successfully.", type: "success" });
+            setSecurityData({
+                currentPassword: "",
+                newPassword: "",
+                confirmPassword: ""
+            });
+        }else {
+            show({ title: "Password Update failed", message: "The password update failed.", type: "error" });
+        }
+    }catch (e) {
+        console.log(e);
+        show({ title: "Failed Password Updating", message: "The password could not be updated.", type: "error" });
+    }finally {
+        setSubmittingPwd(false);
+    }
+
   };
+
+    // NEW: on-change validators
+    const validateNewPassword = (value: string) => {
+        const err = passwordValidator(8)(value);
+        setNewPasswordError(err);
+        // Also keep confirm in sync
+        if (securityData.confirmPassword) {
+            setConfirmPasswordError(value === securityData.confirmPassword ? null : "Passwords do not match");
+        }
+    };
+
+    const validateConfirmPassword = (value: string, base: string) => {
+        setConfirmPasswordError(value === base ? null : "Passwords do not match");
+    };
+
+  useEffect(() => {
+      const user: UserProfile = getProfile();
+      setProfileData({
+          publicId: user?.publicId || "",
+          firstName: user?.profile?.firstName || "",
+          middleName: user?.profile?.middleName || "",
+          lastName: user?.profile?.lastName || "",
+          email: user?.profile?.email || "",
+          phone: user?.profile?.phoneNumber || "",
+          jobTitle: user?.profile?.settings?.role,
+          picture: user?.profile?.profilePicture || "",
+          settings: user?.profile?.settings || {}
+      });
+  }, [])
 
   return (
     <div className="flex min-h-screen bg-gray-5">
@@ -113,9 +214,15 @@ export const Settings = (): JSX.Element => {
               </Button>
               
               <Button variant="ghost" size="sm" className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-white" />
-                </div>
+                  <div className={`w-8 h-8 ${bgClass} rounded-full flex items-center justify-center`}>
+                      {/*<User className="w-4 h-4 text-white" />*/}
+                      {(profileData?.picture) ? (
+                              <span><img src={profileData?.picture} alt="Profile Picture" className="w-full h-full rounded-full"/></span>) :
+                          (
+                              <span className={`text-xs font-semibold ${textClass}`}>{initials}</span>
+                          )
+                      }
+                  </div>
                 <ChevronDown className="w-4 h-4 text-gray-60" />
               </Button>
             </div>
@@ -141,21 +248,28 @@ export const Settings = (): JSX.Element => {
                   <h3 className="text-lg font-bold text-gray-80">Profile Settings</h3>
                   <p className="text-sm text-gray-60">Update your personal information</p>
                 </div>
-                <Button 
-                  onClick={handleSaveProfile}
-                  className="bg-primary-500 hover:bg-primary-600 text-white h-10 px-4 rounded-lg"
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  Save
-                </Button>
+                  <LoadingButton
+                      type="button"
+                      onClick={handleSaveProfile}
+                      loading={submittingProfile}
+                      className="bg-primary-500 hover:bg-primary-600 text-white h-10 px-4 rounded-lg"
+                  >
+                      <Save className="w-4 h-4 mr-2" />
+                      Save
+                  </LoadingButton>
               </div>
 
               <div className="space-y-4">
                 {/* Profile Picture */}
                 <div className="flex items-center gap-4 p-4 bg-gray-5 rounded-lg">
-                  <div className="w-16 h-16 bg-primary-500 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-xl">JS</span>
-                  </div>
+                    <div className={`w-16 h-16 ${bgClass} rounded-full flex items-center justify-center`}>
+                        {(profileData?.picture) ? (
+                                <span><img src={profileData?.picture} alt="Profile Picture" className="w-full h-full rounded-full"/></span>) :
+                            (
+                                <span className={`text-xs font-semibold ${textClass}`}>{initials}</span>
+                            )
+                        }
+                    </div>
                   <div className="flex-1">
                     <h4 className="text-sm font-semibold text-gray-80">Profile Picture</h4>
                     <p className="text-xs text-gray-60 mb-2">JPG, PNG or GIF. Max size 2MB.</p>
@@ -228,32 +342,22 @@ export const Settings = (): JSX.Element => {
                   </Label>
                   <Input
                     value={profileData.jobTitle}
+                    disabled
                     onChange={(e) => handleProfileChange("jobTitle", e.target.value)}
                     className="h-10 bg-white border-gray-30 rounded-lg"
                   />
                 </div>
 
-                {/* Department */}
+                {/* Middle Name */}
                 <div>
                   <Label className="text-sm font-semibold text-gray-80 mb-2 block">
-                    Department
+                    Middle Name
                   </Label>
-                  <Select 
-                    value={profileData.department} 
-                    onValueChange={(value) => handleProfileChange("department", value)}
-                  >
-                    <SelectTrigger className="h-10 bg-white border-gray-30 rounded-lg">
-                      <SelectValue placeholder="Select Department" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Management">Management</SelectItem>
-                      <SelectItem value="Operations">Operations</SelectItem>
-                      <SelectItem value="Compliance">Compliance</SelectItem>
-                      <SelectItem value="Analytics">Analytics</SelectItem>
-                      <SelectItem value="Customer Service">Customer Service</SelectItem>
-                      <SelectItem value="Technology">Technology</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <Input
+                        value={profileData.middleName}
+                        onChange={(e) => handleProfileChange("middleName", e.target.value)}
+                        className="h-10 bg-white border-gray-30 rounded-lg"
+                    />
                 </div>
               </div>
             </div>
@@ -265,13 +369,15 @@ export const Settings = (): JSX.Element => {
                   <h3 className="text-lg font-bold text-gray-80">Security Settings</h3>
                   <p className="text-sm text-gray-60">Update your password and security preferences</p>
                 </div>
-                <Button 
-                  onClick={handleSaveSecurity}
-                  className="bg-primary-500 hover:bg-primary-600 text-white h-10 px-4 rounded-lg"
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  Update
-                </Button>
+                  <LoadingButton
+                      type="button"
+                      onClick={handleSaveSecurity}
+                      loading={submittingPwd}
+                      className="bg-primary-500 hover:bg-primary-600 text-white h-10 px-4 rounded-lg"
+                  >
+                      <Save className="w-4 h-4 mr-2" />
+                      Update
+                  </LoadingButton>
               </div>
 
               <div className="space-y-4">
@@ -300,6 +406,11 @@ export const Settings = (): JSX.Element => {
                       )}
                     </button>
                   </div>
+                    <span className="text-xs text-red-600">
+                        <strong>Note:</strong> Our current security policy will flag you as a
+                        <strong>potential risk</strong> if your current password is wrong and will invalidate your login session.
+                        If you forget your password, you will need to reset it.
+                    </span>
                 </div>
 
                 {/* New Password */}
@@ -308,13 +419,17 @@ export const Settings = (): JSX.Element => {
                     New Password
                   </Label>
                   <div className="relative">
-                    <Input
-                      type={showNewPassword ? "text" : "password"}
-                      value={securityData.newPassword}
-                      onChange={(e) => handleSecurityChange("newPassword", e.target.value)}
-                      placeholder="Enter new password"
-                      className="pr-10 h-10 bg-white border-gray-30 rounded-lg"
-                    />
+                      <Input
+                          id="newPassword"
+                          type={showNewPassword ? "text" : "password"}
+                          value={securityData.newPassword}
+                          onChange={(e) => { handleSecurityChange("newPassword", e.target.value); validateNewPassword(e.target.value); }}
+                          placeholder="Enter new password"
+                          className="pr-10 h-10 bg-white border-gray-30 rounded-lg"
+                          required
+                          aria-invalid={!!newPasswordError}
+                          aria-describedby="newPasswordError-error"
+                      />
                     <button
                       type="button"
                       className="absolute inset-y-0 right-0 pr-3 flex items-center"
@@ -327,6 +442,9 @@ export const Settings = (): JSX.Element => {
                       )}
                     </button>
                   </div>
+                    {newPasswordError && (
+                        <p id="newPassword-error" className="text-sm text-red-600 mt-1">{newPasswordError}</p>
+                    )}
                 </div>
 
                 {/* Confirm Password */}
@@ -335,13 +453,24 @@ export const Settings = (): JSX.Element => {
                     Confirm New Password
                   </Label>
                   <div className="relative">
-                    <Input
-                      type={showConfirmPassword ? "text" : "password"}
-                      value={securityData.confirmPassword}
-                      onChange={(e) => handleSecurityChange("confirmPassword", e.target.value)}
-                      placeholder="Confirm new password"
-                      className="pr-10 h-10 bg-white border-gray-30 rounded-lg"
-                    />
+                    {/*<Input*/}
+                    {/*  type={showConfirmPassword ? "text" : "password"}*/}
+                    {/*  value={securityData.confirmPassword}*/}
+                    {/*  onChange={(e) => handleSecurityChange("confirmPassword", e.target.value)}*/}
+                    {/*  placeholder="Confirm new password"*/}
+                    {/*  className="pr-10 h-10 bg-white border-gray-30 rounded-lg"*/}
+                    {/*/>*/}
+                      <Input
+                          id="confirmPassword"
+                          type={showConfirmPassword ? "text" : "password"}
+                          value={securityData.confirmPassword}
+                          onChange={(e) => { handleSecurityChange("confirmPassword", e.target.value); validateConfirmPassword(e.target.value, securityData.newPassword); }}
+                          placeholder="Confirm new password"
+                          className="pr-10 h-10 bg-white border-gray-30 rounded-lg"
+                          required
+                          aria-invalid={!!confirmPasswordError}
+                          aria-describedby="confirmPasswordError-error"
+                      />
                     <button
                       type="button"
                       className="absolute inset-y-0 right-0 pr-3 flex items-center"
@@ -354,6 +483,9 @@ export const Settings = (): JSX.Element => {
                       )}
                     </button>
                   </div>
+                    {confirmPasswordError && (
+                        <p id="confirmPasswordError-error" className="text-sm text-red-600 mt-1">{confirmPasswordError}</p>
+                    )}
                 </div>
 
                 {/* Password Requirements */}

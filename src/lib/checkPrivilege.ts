@@ -20,3 +20,7 @@ export const getProfileFromStorage = () : {publicId: string, username: string} =
         username
     }
 }
+
+export const getProfile = () : UserProfile => {
+    return  JSON.parse(getAppInfo("profile") || {} as string);
+}

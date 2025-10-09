@@ -2,7 +2,7 @@ import { useState } from "react";
 import { 
   Bell, 
   Search, 
-  User, 
+  // User,
   ChevronDown,
   TrendingUp,
   // TrendingDown,
@@ -20,6 +20,9 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Sidebar } from "../../components/Sidebar";
+import {useUserProfile} from "../../lib/hooks.ts";
+import {UserProfile} from "../../lib/appModels.ts";
+import {getAvatarProps} from "../../lib/utils.ts";
 
 const dashboardStats = [
   {
@@ -150,6 +153,10 @@ const getStatusColor = (status: string) => {
 export const Dashboard = (): JSX.Element => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
+  const user: UserProfile = useUserProfile();
+
+  const activeUserNameOrEmail = `${user?.profile?.firstName || ""} ${user?.profile?.lastName || ""}`.trim() || user?.profile?.email;
+  const { initials, bgClass, textClass } = getAvatarProps(activeUserNameOrEmail);
 
   return (
     <div className="flex min-h-screen bg-gray-5">
@@ -183,8 +190,14 @@ export const Dashboard = (): JSX.Element => {
               </Button>
               
               <Button variant="ghost" size="sm" className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-white" />
+                <div className={`w-8 h-8 ${bgClass} rounded-full flex items-center justify-center`}>
+                  {/*<User className="w-4 h-4 text-white" />*/}
+                        {(user?.profile?.profilePicture) ? (
+                                <span><img src={user?.profile?.profilePicture} alt="Profile Picture" className="w-full h-full rounded-full"/></span>) :
+                            (
+                                <span className={`text-xs font-semibold ${textClass}`}>{initials}</span>
+                            )
+                        }
                 </div>
                 <ChevronDown className="w-4 h-4 text-gray-60" />
               </Button>

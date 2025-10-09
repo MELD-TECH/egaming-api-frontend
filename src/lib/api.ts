@@ -24,7 +24,7 @@ import {
     ChangePasswordResponse,
     AuthUrlResponse, EmptyRequest, UserPermissionResponse, ProfileAccount, PasswordResetResponse,
     OtpVerificationResponse, UserAccountResponse, UserAccountRequest, OperatorVerificationRequest,
-    OperatorVerificationResponse, LgaResponse, CompanyRequest, CompanyResponse, SignerConfig
+    OperatorVerificationResponse, LgaResponse, CompanyRequest, CompanyResponse, SignerConfig, ProfileUpdateRequest
 } from './models';
 
 export { httpGet, httpPost, httpPut, httpPatch, httpDelete, ApiError, setAuthToken, clearAuthToken, setAppInfo, clearAllAppInfo  };
@@ -40,6 +40,8 @@ let LOGIN_URL = `${import.meta.env.VITE_AUTH_BASE_URL}/login?appId=${APP_ID}&err
 const STATE_CODE = import.meta.env.VITE_STATE_CODE;
 // @ts-ignore
 const SERVER_SECRET_KEY = import.meta.env.VITE_SERVER_SK;
+
+// User & Company Endpoints
 const SIGN_UP =  `/v1/users/public/sign-up`;
 const AUTHORIZE_URL = `/v1/auth/users/authorize/endpoint/${APP_ID}`;
 const EXCHANGE_CODE_URL = `/v1/auth/users/token/endpoint/${APP_ID}`;
@@ -52,10 +54,12 @@ const PASSWORD_RESET_VERIFY_OTP =  `/v1/users/verify/otp/`;
 const PASSWORD_RESET_OTP =  `/v1/users/public/email/`;
 const PASSWORD_RESET_SEND_OTP =  `/send/otp`;
 const PASSWORD_CHANGE =  `/password/publicId/`;
+const AUTH_USER_PASSWORD_CHANGE =  `/v1/users/password`;
 const OPERATOR_VERIFICATION_URL =  `/v1/users/verify/identity?type=`;
 const GET_LGA_URL =  `/region/api/v1/lgas?stateCode=${STATE_CODE}&size=`;
 const OPERATOR_URL =  `/platform/api/v1/operators`;
 const CHANGE_ROLE_URL =  `/v1/users/role/change`;
+const USER_PROFILE_ADMIN =  `/v1/users/admin/profiles/`;
 
 export { LOGIN_URL };
 export { APP_ID };
@@ -94,9 +98,17 @@ export async function changeUserPassword( publicId: string, body: ChangePassword
   return httpPut<ChangePasswordResponse, ChangePasswordRequest>(`${PASSWORD_RESET}${PASSWORD_CHANGE}${publicId}`, body, { base: 'apiV1', withAuth: false });
 }
 
+export async function changeLoginUserPassword( body: ChangePasswordRequest ) {
+  return httpPut<ChangePasswordResponse, ChangePasswordRequest>(`${AUTH_USER_PASSWORD_CHANGE}`, body, { base: 'apiV1' });
+}
+
 // Profile
 export async function fetchProfile() {
   return httpGet<ProfileAccount>(USER_PROFILE, { base: 'apiV1' });
+}
+
+export async function updateProfile(publicId: string, body: ProfileUpdateRequest) {
+  return httpPut<ProfileAccount, ProfileUpdateRequest>(`${USER_PROFILE_ADMIN}${publicId}`, body, { base: 'apiV1' });
 }
 
 // User Sign Up

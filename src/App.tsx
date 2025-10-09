@@ -11,7 +11,6 @@ import { OperatorDetails } from './screens/OperatorDetails/OperatorDetails';
 import { Team } from './screens/Team';
 import { LGA } from './screens/LGA';
 import { Settings } from './screens/Settings';
-import { ChangePassword } from './screens/ChangePassword';
 import { Home } from './screens/Home/Home';
 import {LoginRedirect} from "./screens/Auth/LoginRedirect";
 import {ProcessLogin} from "./screens/Auth/ProcessLogin";
@@ -55,7 +54,6 @@ export const App: React.FC = () => {
                 <Route path="/team" element={<Team />} />
                 <Route path="/lga" element={<LGA />} />
                 <Route path="/settings" element={<Settings />} />
-                <Route path="/change-password" element={<ChangePassword />} />
                 <Route path="/change/password" element={<ChangeUserPassword />} />
                 <Route path="/finalize/login" element={<Adjudicator />} />
                 <Route path="/operator/setup" element={<RolePromoter />} />
