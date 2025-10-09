@@ -57,6 +57,21 @@ export interface ProfileAccount {
     }
 }
 
+export interface ProfileUpdateRequest {
+    profile: {
+        firstName: string;
+        middleName: string;
+        lastName: string;
+        email: string;
+        phoneNumber: string;
+        profilePicture: string;
+        settings: {
+            role: string,
+            isEmailVerified: boolean
+        }
+    }
+}
+
 export interface PasswordResetResponse {
     data: {
         message: string;
@@ -192,20 +207,5 @@ export interface CompanyResponse {
         phone: string;
         address: string;
         lga: string;
-    }
-}
-
-export interface CRoleUpdateResponse {
-    data: {
-        firstName: string;
-         middleName: string;
-         lastName: string;
-         email: string;
-         phoneNumber: string;
-         createdOn: string;
-         settings: {
-             role: string;
-             isEmailVerified: boolean;
-         }
     }
 }

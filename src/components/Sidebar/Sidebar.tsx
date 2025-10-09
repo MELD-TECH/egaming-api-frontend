@@ -14,7 +14,8 @@ import {
   // ChevronUp
 } from 'lucide-react';
 import { Button } from '../ui/button';
-import { cn } from '../../lib/utils';
+import {cn, getAvatarProps} from '../../lib/utils';
+import {useUserProfile} from "../../lib/hooks.ts";
 
 interface SidebarProps {
   isCollapsed?: boolean;
@@ -25,7 +26,7 @@ const navigationItems = [
   {
     title: 'Dashboard',
     icon: LayoutDashboard,
-    path: '/dashboard',
+    path: '/app/dashboard',
     id: 'dashboard'
   },
   {
@@ -66,7 +67,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const user = useUserProfile();
+
   // const [expandedMenus, setExpandedMenus] = React.useState<string[]>([]);
+    const activeUserNameOrEmail = `${user?.profile?.firstName || ""} ${user?.profile?.lastName || ""}`.trim() || user?.profile?.email;
+    const { initials, bgClass, textClass } = getAvatarProps(activeUserNameOrEmail);
 
   const handleNavigation = (path: string) => {
     navigate(path);
@@ -81,9 +86,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
            (path === '/operators' && (location.pathname.startsWith('/operators/') || location.pathname.startsWith('/operator-details/')));
   };
 
+  const dterminePath = (id: string, path: string) => {
+      if (id === 'dashboard' && user?.profile?.settings?.role.toLowerCase() === 'admin') return '/admin/dashboard';
+      return path;
+  }
+
   return (
     <div className={cn(
-      "flex flex-col h-screen bg-white border-r border-gray-20 transition-all duration-300",
+      "flex flex-col h-screen bg-black border-r border-gray-20 transition-all duration-300",
       isCollapsed ? "w-16" : "w-64"
     )}>
       {/* Header */}
@@ -94,8 +104,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <div className="relative w-[45.38px] h-[49px] bg-[url(/vector.png)] bg-[100%_100%]" />
               </div>
               <div>
-              <h1 className="text-lg font-bold text-gray-80">ESGC</h1>
-              <p className="text-xs text-gray-60">Game Staking</p>
+              <h1 className="text-lg text-w font-bold text-gray-500">ESGC</h1>
+              <p className="text-xs text-gray-50">Game Staking</p>
             </div>
           </div>
         )}
@@ -131,7 +141,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div key={item.id}>
               <Button
                 variant="ghost"
-                onClick={() => handleNavigation(item.path)}
+                onClick={() => handleNavigation(dterminePath(item.id, item.path))}
                 className={cn(
                   "w-full justify-start h-12 px-3 rounded-xl transition-all duration-200",
                   isCollapsed ? "px-0 justify-center" : "justify-start",
@@ -159,13 +169,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="p-4 border-t border-gray-20">
         {/* User Profile Section */}
         {!isCollapsed && (
-          <div className="flex items-center gap-3 mb-4 p-3 bg-gray-5 rounded-xl">
-            <div className="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-bold text-sm">JS</span>
-            </div>
+          <div className="flex items-center gap-3 mb-4 p-3 bg-gray-900 rounded-xl">
+            {/*<div className="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center flex-shrink-0">*/}
+            {/*  <span className="text-white font-bold text-sm">JS</span>*/}
+            {/*</div>*/}
+              <div className={`w-16 h-16 ${bgClass} rounded-full flex items-center justify-center`}>
+                  {(user?.profile?.profilePicture) ? (
+                      <span><img src={user?.profile?.profilePicture} alt="Profile Picture" className="w-full h-full rounded-full"/></span>) :
+                      (
+                          <span className={`text-xs font-semibold ${textClass}`}>{initials}</span>
+                      )
+                  }
+              </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-80 truncate">John Smith</p>
-              <p className="text-xs text-gray-60 truncate">System Administrator</p>
+              <p className="text-sm font-semibold text-white truncate">{user?.profile?.firstName || ""} {user?.profile?.lastName || ""}</p>
+              <p className="text-xs text-white truncate">{user?.profile?.settings?.role}</p>
             </div>
           </div>
         )}
@@ -182,7 +200,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           variant="ghost"
           onClick={handleLogout}
           className={cn(
-            "w-full justify-start h-12 px-3 rounded-xl text-gray-60 hover:bg-red-50 hover:text-red-600 transition-all duration-200",
+            "w-full justify-start h-12 px-3 rounded-xl text-white hover:bg-red-50 hover:text-red-600 transition-all duration-200",
             isCollapsed ? "px-0 justify-center" : "justify-start"
           )}
         >

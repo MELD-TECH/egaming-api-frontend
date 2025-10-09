@@ -11,6 +11,7 @@ export interface UserProfile {
         lastName: string;
         email: string;
         phoneNumber: string;
+        profilePicture: string;
         createdOn: string;
         settings: {
             role: string;
