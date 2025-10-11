@@ -6,8 +6,7 @@ import {
     ChevronDown,
     Save,
     Eye,
-    EyeOff,
-    Upload,
+    EyeOff
 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -24,10 +23,11 @@ import {
     fetchProfile,
     ProfileUpdateRequest,
     setAppInfo,
-    updateProfile
+    updateProfile, uploadFileWithBase64
 } from "../../lib/api.ts";
 import {useToast} from "../../components/feedback/Toast.tsx";
 import {password as passwordValidator} from "../../components/form/validators.ts";
+import {FileUpload} from "../../components/upload/FileUpload.tsx";
 
 export const Settings = (): JSX.Element => {
   const { show } = useToast();
@@ -182,7 +182,8 @@ export const Settings = (): JSX.Element => {
       });
   }, [])
 
-  return (
+  // @ts-ignore
+    return (
     <div className="flex min-h-screen bg-gray-5">
       <Sidebar 
         isCollapsed={sidebarCollapsed} 
@@ -271,12 +272,21 @@ export const Settings = (): JSX.Element => {
                         }
                     </div>
                   <div className="flex-1">
-                    <h4 className="text-sm font-semibold text-gray-80">Profile Picture</h4>
-                    <p className="text-xs text-gray-60 mb-2">JPG, PNG or GIF. Max size 2MB.</p>
-                    <Button variant="outline" size="sm" className="h-8 px-3 text-xs">
-                      <Upload className="w-3 h-3 mr-1" />
-                      Upload
-                    </Button>
+                      <FileUpload
+                          label="Profile Picture"
+                          description="JPG, PNG or GIF. Max size 1MB."
+                          accept="image/*"
+                          maxSizeBytes={1024 * 1024}
+                          circularPreview
+                          value={profileData.picture || null}
+                          onChange={(url) => {
+                              // Update state (and let the existing Save button persist it through updateProfile)
+                              handleProfileChange('picture', url || '');
+                          }}
+                          // @ts-ignore
+                          uploader={(file, onProgress) => uploadFileWithBase64(file, onProgress)}
+                          className="max-w-sm"
+                      />
                   </div>
                 </div>
 

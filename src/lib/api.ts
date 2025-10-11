@@ -24,8 +24,10 @@ import {
     ChangePasswordResponse,
     AuthUrlResponse, EmptyRequest, UserPermissionResponse, ProfileAccount, PasswordResetResponse,
     OtpVerificationResponse, UserAccountResponse, UserAccountRequest, OperatorVerificationRequest,
-    OperatorVerificationResponse, LgaResponse, CompanyRequest, CompanyResponse, SignerConfig, ProfileUpdateRequest
+    OperatorVerificationResponse, LgaResponse, CompanyRequest, CompanyResponse, SignerConfig, ProfileUpdateRequest,
+    UploadResponse, UploadRequest
 } from './models';
+import {getBase64Image} from "./uploaders.ts";
 
 export { httpGet, httpPost, httpPut, httpPatch, httpDelete, ApiError, setAuthToken, clearAuthToken, setAppInfo, clearAllAppInfo  };
 export type { ApiResponse };
@@ -60,6 +62,7 @@ const GET_LGA_URL =  `/region/api/v1/lgas?stateCode=${STATE_CODE}&size=`;
 const OPERATOR_URL =  `/platform/api/v1/operators`;
 const CHANGE_ROLE_URL =  `/v1/users/role/change`;
 const USER_PROFILE_ADMIN =  `/v1/users/admin/profiles/`;
+const UPLOAD_DOCUMENT_URL =  `/v1/documents/upload`;
 
 export { LOGIN_URL };
 export { APP_ID };
@@ -142,4 +145,18 @@ export async function requestUserRoleChange(publicId: string, username: string) 
     // @ts-ignore
     const headers = await buildSignedHeaders(publicId, username, 'STANDARD', cfg);
     return httpPut<CompanyResponse>(`${CHANGE_ROLE_URL}`, {},{ base: 'apiV1', headers });
+}
+
+// Upload Avatar
+export async function uploadFileWithBase64(file: File, onProgress?: (pct: number) => void) {
+    return await getBase64Image(file)
+        .then((body) => {
+            return httpPost<UploadResponse, UploadRequest>(UPLOAD_DOCUMENT_URL, body, { base: 'apiV1',
+                onUploadProgress: (evt) => {
+                    if (!onProgress || !evt.total) return;
+                    const pct = Math.round((evt.loaded / evt.total) * 100);
+                    onProgress(pct);
+                },
+            });
+        })
 }

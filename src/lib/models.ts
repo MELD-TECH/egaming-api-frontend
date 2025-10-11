@@ -209,3 +209,13 @@ export interface CompanyResponse {
         lga: string;
     }
 }
+
+export interface UploadRequest {
+    base64Image: string;
+    resourceType: string;
+}
+export interface UploadResponse {
+    data: {
+        resourceUrl: string;
+    }
+}
