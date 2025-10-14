@@ -25,9 +25,10 @@ import {
     AuthUrlResponse, EmptyRequest, UserPermissionResponse, ProfileAccount, PasswordResetResponse,
     OtpVerificationResponse, UserAccountResponse, UserAccountRequest, OperatorVerificationRequest,
     OperatorVerificationResponse, LgaResponse, CompanyRequest, CompanyResponse, SignerConfig, ProfileUpdateRequest,
-    UploadResponse, UploadRequest
+    UploadResponse, UploadRequest, OperatorsResponse
 } from './models';
 import {getBase64Image} from "./uploaders.ts";
+import {OperatorData} from "./appModels.ts";
 
 export { httpGet, httpPost, httpPut, httpPatch, httpDelete, ApiError, setAuthToken, clearAuthToken, setAppInfo, clearAllAppInfo  };
 export type { ApiResponse };
@@ -43,13 +44,15 @@ const STATE_CODE = import.meta.env.VITE_STATE_CODE;
 // @ts-ignore
 const SERVER_SECRET_KEY = import.meta.env.VITE_SERVER_SK;
 
-// User & Company Endpoints
+// Auth Endpoints
 const SIGN_UP =  `/v1/users/public/sign-up`;
 const AUTHORIZE_URL = `/v1/auth/users/authorize/endpoint/${APP_ID}`;
 const EXCHANGE_CODE_URL = `/v1/auth/users/token/endpoint/${APP_ID}`;
 const USER_PERMISSION = `/v1/users/permissions`;
 const USER_PROFILE = `/v1/users/profiles`;
 const LOG_OUT_URL =  `/v1/auth/users/logout/endpoint`;
+
+// User Service Endpoints
 const PASSWORD_RESET =  `v1/users/public/`;
 const PASSWORD_RESET_SUFFIX =  `/password/reset`;
 const PASSWORD_RESET_VERIFY_OTP =  `/v1/users/verify/otp/`;
@@ -58,11 +61,15 @@ const PASSWORD_RESET_SEND_OTP =  `/send/otp`;
 const PASSWORD_CHANGE =  `/password/publicId/`;
 const AUTH_USER_PASSWORD_CHANGE =  `/v1/users/password`;
 const OPERATOR_VERIFICATION_URL =  `/v1/users/verify/identity?type=`;
-const GET_LGA_URL =  `/region/api/v1/lgas?stateCode=${STATE_CODE}&size=`;
-const OPERATOR_URL =  `/platform/api/v1/operators`;
 const CHANGE_ROLE_URL =  `/v1/users/role/change`;
 const USER_PROFILE_ADMIN =  `/v1/users/admin/profiles/`;
 const UPLOAD_DOCUMENT_URL =  `/v1/documents/upload`;
+
+// State Service Endpoints
+const GET_LGA_URL =  `/region/api/v1/lgas?stateCode=${STATE_CODE}&size=`;
+const OPERATOR_URL =  `/platform/api/v1/operators`;
+const OPERATOR_METRICS_URL =  `/platform/api/v1/metrics/operators`;
+
 
 export { LOGIN_URL };
 export { APP_ID };
@@ -131,7 +138,7 @@ export async function getLGAs(size: number) {
 
 // Add New Operator
 export async function addOperator(body: CompanyRequest) {
-    return httpPost<CompanyResponse, CompanyRequest>(OPERATOR_URL, body,{ base: 'api', withAuth: false });
+    return httpPost<CompanyResponse, CompanyRequest>(OPERATOR_URL, body,{ base: 'api' });
 }
 
 // Change User Role
@@ -159,4 +166,10 @@ export async function uploadFileWithBase64(file: File, onProgress?: (pct: number
                 },
             });
         })
+}
+
+
+// Get Operators
+export async function fetchOperators(queryString: string) {
+    return httpGet<OperatorsResponse<OperatorData>>(`${OPERATOR_METRICS_URL}?${queryString}`, { base: 'api' });
 }

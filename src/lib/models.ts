@@ -196,6 +196,9 @@ export interface CompanyRequest {
     phone: string;
     address: string;
     lga: string;
+    contactPerson: string;
+    contactPersonPhone: string;
+    contactPersonEmail: string;
 }
 
 export interface CompanyResponse {
@@ -207,6 +210,9 @@ export interface CompanyResponse {
         phone: string;
         address: string;
         lga: string;
+        contactPerson: string;
+        contactPersonPhone: string;
+        contactPersonEmail: string;
     }
 }
 
@@ -219,3 +225,16 @@ export interface UploadResponse {
         resourceUrl: string;
     }
 }
+
+export interface OperatorsResponse<T> {
+    data: {
+        page: number;
+        size: number;
+        totalPages: number;
+        total: number;
+        previous: number;
+        next: number;
+        data: [ T ]
+    }
+}
+

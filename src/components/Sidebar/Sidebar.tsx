@@ -86,7 +86,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
            (path === '/operators' && (location.pathname.startsWith('/operators/') || location.pathname.startsWith('/operator-details/')));
   };
 
-  const dterminePath = (id: string, path: string) => {
+  const determinePath = (id: string, path: string) => {
       if (id === 'dashboard' && user?.profile?.settings?.role.toLowerCase() === 'admin') return '/admin/dashboard';
       return path;
   }
@@ -141,7 +141,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div key={item.id}>
               <Button
                 variant="ghost"
-                onClick={() => handleNavigation(dterminePath(item.id, item.path))}
+                onClick={() => handleNavigation(determinePath(item.id, item.path))}
                 className={cn(
                   "w-full justify-start h-12 px-3 rounded-xl transition-all duration-200",
                   isCollapsed ? "px-0 justify-center" : "justify-start",

@@ -24,3 +24,16 @@ export const getProfileFromStorage = () : {publicId: string, username: string} =
 export const getProfile = () : UserProfile => {
     return  JSON.parse(getAppInfo("profile") || {} as string);
 }
+
+export const getUserContact = () : {fullName: string, email: string, phone: string} => {
+    const user = JSON.parse(getAppInfo("profile") || {} as string);
+    const fullName = user?.profile?.firstName + " " + user?.profile?.lastName;
+    const email = user?.profile?.email;
+    const phone = user?.profile?.phoneNumber;
+
+    return {
+        fullName,
+        email,
+        phone
+    }
+}

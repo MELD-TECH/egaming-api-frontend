@@ -1,19 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  Bell, 
-  Search, 
-  User, 
-  ChevronDown,
-  ArrowLeft,
+import {
   Edit,
   Save,
   X,
   Building,
-  // Mail,
-  // Phone,
-  // Calendar,
-  // MapPin,
   FileText,
   DollarSign,
   Users,
@@ -22,7 +13,6 @@ import {
   XCircle,
   Clock,
   AlertTriangle,
-  // Eye,
   Download,
   MoreHorizontal,
   Trash2,
@@ -30,11 +20,10 @@ import {
   TrendingUp,
   TrendingDown
 } from "lucide-react";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
-// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
-import { 
+import { Button } from "../../../components/ui/button.tsx";
+import { Input } from "../../../components/ui/input.tsx";
+import { Label } from "../../../components/ui/label.tsx";
+import {
   Dialog, 
   DialogContent, 
   DialogDescription, 
@@ -42,8 +31,9 @@ import {
   DialogHeader, 
   DialogTitle,
   DialogTrigger 
-} from "../../components/ui/dialog";
-import { Sidebar } from "../../components/Sidebar";
+} from "../../../components/ui/dialog.tsx";
+import { Sidebar } from "../../../components/Sidebar";
+import {Header} from "../../../components/Header";
 
 const operatorData = {
   id: "OP001",
@@ -276,43 +266,11 @@ export const OperatorDetails = (): JSX.Element => {
       
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="bg-white border-b border-gray-20 px-4 md:px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => navigate('/operators')}
-                className="flex items-center gap-2 text-gray-60 hover:text-gray-80"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Back to Operators
-              </Button>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <div className="relative hidden md:block">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-40 w-4 h-4" />
-                <Input
-                  placeholder="Search..."
-                  className="pl-10 w-64 h-10 bg-gray-5 border-gray-30 rounded-full"
-                />
-              </div>
-              
-              <Button variant="ghost" size="sm" className="relative">
-                <Bell className="w-5 h-5 text-gray-60" />
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-              </Button>
-              
-              <Button variant="ghost" size="sm" className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-white" />
-                </div>
-                <ChevronDown className="w-4 h-4 text-gray-60" />
-              </Button>
-            </div>
-          </div>
-        </header>
+          <Header
+              title={"Operator Details"}
+              targetScreen={'/operators'}
+              hasBackButton={true}
+              backMessage={'Back to Operators'} />
 
         <div className="flex-1 p-4 md:p-6 space-y-6">
           {/* Operator Header Card */}

@@ -28,3 +28,43 @@ export interface Lga {
     stateCode: string;
     countryCode: string;
 }
+
+export interface FilterRequest {
+    page: number;
+    size: number;
+    name?: string;
+    search?: string;
+    lga?: string;
+    status?: string;
+    sort?: string;
+    createdFrom?: string;
+    createdTo?: string;
+}
+
+export interface ResponseMetadata {
+    page: number;
+    size: number;
+    totalPages: number;
+    total: number;
+    previous: number;
+    next: number;
+}
+
+export interface OperatorData {
+    id: number;
+    publicId: string;
+    registrationNumber: string;
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+    lga: string;
+    contactPerson: string;
+    contactPersonPhone: string;
+    contactPersonEmail: string;
+    status: string;
+    totalStakeAmountByOperator: number;
+    totalUniqueGamesPlayedByOperator: number;
+    totalStakeWinningAmountByOperator: number;
+    createdOn: number;
+}

@@ -1,10 +1,5 @@
-import React, { useState } from "react";
-import { 
-  Bell, 
-  Search, 
-  User, 
-  ChevronDown,
-  Calendar,
+import { useState } from "react";
+import {
   Download,
   Filter,
   TrendingUp,
@@ -20,9 +15,9 @@ import {
   MoreHorizontal
 } from "lucide-react";
 import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Sidebar } from "../../components/Sidebar";
+import {Header} from "../../components/Header";
 
 const reportStats = [
   {
@@ -167,9 +162,9 @@ const getStatusIcon = (status: string) => {
 export const Report = (): JSX.Element => {
   const [dateRange, setDateRange] = useState("last-30-days");
   const [operatorFilter, setOperatorFilter] = useState("all-operators");
-  const [reportType, setReportType] = useState("all-reports");
+  // const [reportType, setReportType] = useState("all-reports");
   const [statusFilter, setStatusFilter] = useState("all-status");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, ] = useState("");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const filteredReports = reportsData.filter(report => {
@@ -194,39 +189,7 @@ export const Report = (): JSX.Element => {
       
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="bg-white border-b border-gray-20 px-4 md:px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <h1 className="text-xl md:text-2xl font-bold text-gray-80">
-                Reports & Analytics
-              </h1>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <div className="relative hidden md:block">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-40 w-4 h-4" />
-                <Input
-                  placeholder="Search reports..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 w-64 h-10 bg-gray-5 border-gray-30 rounded-full"
-                />
-              </div>
-              
-              <Button variant="ghost" size="sm" className="relative">
-                <Bell className="w-5 h-5 text-gray-60" />
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-              </Button>
-              
-              <Button variant="ghost" size="sm" className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-white" />
-                </div>
-                <ChevronDown className="w-4 h-4 text-gray-60" />
-              </Button>
-            </div>
-          </div>
-        </header>
+          <Header title={"Reports & Analytics"} />
 
         <div className="flex-1 p-4 md:p-6 space-y-6">
           {/* Page Header */}
