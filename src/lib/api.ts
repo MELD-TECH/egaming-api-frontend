@@ -25,7 +25,7 @@ import {
     AuthUrlResponse, EmptyRequest, UserPermissionResponse, ProfileAccount, PasswordResetResponse,
     OtpVerificationResponse, UserAccountResponse, UserAccountRequest, OperatorVerificationRequest,
     OperatorVerificationResponse, LgaResponse, CompanyRequest, CompanyResponse, SignerConfig, ProfileUpdateRequest,
-    UploadResponse, UploadRequest, OperatorsResponse
+    UploadResponse, UploadRequest, GenericResponse, OperatorMetricsResponse
 } from './models';
 import {getBase64Image} from "./uploaders.ts";
 import {OperatorData} from "./appModels.ts";
@@ -68,7 +68,8 @@ const UPLOAD_DOCUMENT_URL =  `/v1/documents/upload`;
 // State Service Endpoints
 const GET_LGA_URL =  `/region/api/v1/lgas?stateCode=${STATE_CODE}&size=`;
 const OPERATOR_URL =  `/platform/api/v1/operators`;
-const OPERATOR_METRICS_URL =  `/platform/api/v1/metrics/operators`;
+const OPERATORS_METRICS_URL =  `/platform/api/v1/metrics/operators`;
+const OPERATOR_METRICS_URL =  `/platform/api/v1/metrics/summary/by-operator/`;
 
 
 export { LOGIN_URL };
@@ -171,5 +172,9 @@ export async function uploadFileWithBase64(file: File, onProgress?: (pct: number
 
 // Get Operators
 export async function fetchOperators(queryString: string) {
-    return httpGet<OperatorsResponse<OperatorData>>(`${OPERATOR_METRICS_URL}?${queryString}`, { base: 'api' });
+    return httpGet<GenericResponse<OperatorData>>(`${OPERATORS_METRICS_URL}?${queryString}`, { base: 'api' });
+}
+
+export async function fetchOperatorMetric(operatorId: string | undefined) {
+    return httpGet<OperatorMetricsResponse>(`${OPERATOR_METRICS_URL}${operatorId}`, { base: 'api' });
 }

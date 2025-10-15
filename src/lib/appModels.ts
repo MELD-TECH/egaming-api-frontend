@@ -66,5 +66,14 @@ export interface OperatorData {
     totalStakeAmountByOperator: number;
     totalUniqueGamesPlayedByOperator: number;
     totalStakeWinningAmountByOperator: number;
+    totalUniquePlayersByOperator: number;
     createdOn: number;
+}
+
+export interface OperatorSummary {
+    totalOperators: number;
+    totalStakesAmount: number;
+    totalStakes: number;
+    totalWinningAmount: number;
+    totalWinnings: number;
 }

@@ -4,12 +4,12 @@ import {
   LayoutDashboard, 
   FileText, 
   Users, 
-  UserCheck,
+  // UserCheck,
   Settings, 
   LogOut,
   ChevronLeft,
   ChevronRight,
-  MapPin,
+  // MapPin,
   // ChevronDown,
   // ChevronUp
 } from 'lucide-react';
@@ -41,18 +41,18 @@ const navigationItems = [
     path: '/operators',
     id: 'operators'
   },
-  {
-    title: 'LGA',
-    icon: MapPin,
-    path: '/lga',
-    id: 'lga'
-  },
-  {
-    title: 'Team',
-    icon: UserCheck,
-    path: '/team',
-    id: 'team'
-  },
+  // {
+  //   title: 'LGA',
+  //   icon: MapPin,
+  //   path: '/lga',
+  //   id: 'lga'
+  // },
+  // {
+  //   title: 'Team',
+  //   icon: UserCheck,
+  //   path: '/team',
+  //   id: 'team'
+  // },
   {
     title: 'Settings',
     icon: Settings,
