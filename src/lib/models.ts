@@ -1,7 +1,7 @@
 // Centralized request/response payload models for API calls
 
 // Auth
-import {Lga} from "./appModels.ts";
+import {Lga, OperatorSummary} from "./appModels.ts";
 
 export interface SignerConfig {
     secret: string;               // client secret or per-session key
@@ -196,6 +196,9 @@ export interface CompanyRequest {
     phone: string;
     address: string;
     lga: string;
+    contactPerson: string;
+    contactPersonPhone: string;
+    contactPersonEmail: string;
 }
 
 export interface CompanyResponse {
@@ -207,5 +210,35 @@ export interface CompanyResponse {
         phone: string;
         address: string;
         lga: string;
+        contactPerson: string;
+        contactPersonPhone: string;
+        contactPersonEmail: string;
     }
 }
+
+export interface UploadRequest {
+    base64Image: string;
+    resourceType: string;
+}
+export interface UploadResponse {
+    data: {
+        resourceUrl: string;
+    }
+}
+
+export interface GenericResponse<T> {
+    data: {
+        page: number;
+        size: number;
+        totalPages: number;
+        total: number;
+        previous: number;
+        next: number;
+        data: [ T ]
+    }
+}
+
+export interface OperatorMetricsResponse {
+    data: OperatorSummary;
+}
+

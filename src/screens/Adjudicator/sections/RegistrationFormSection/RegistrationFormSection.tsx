@@ -23,6 +23,7 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "../
 import {Lga} from "../../../../lib/appModels.ts";
 import {LoadingButton} from "../../../../components/feedback/LoadingButton.tsx";
 import {useNavigate} from "react-router-dom";
+import {getUserContact} from "../../../../lib/checkPrivilege.ts";
 
 export const RegistrationFormSection = (): JSX.Element => {
     const { show } = useToast();
@@ -77,6 +78,8 @@ export const RegistrationFormSection = (): JSX.Element => {
             setSubmitting(false);
             return;
         }
+        // The logic here is to check if the user has filled in all the required fields.
+        const { fullName, email, phone } = getUserContact();
         const body: CompanyRequest = {
             registrationNumber: brn,
             name: companyName,
@@ -84,6 +87,10 @@ export const RegistrationFormSection = (): JSX.Element => {
             phone: companyPhone,
             address: companyAddress,
             lga: selectedLgaId,
+            contactPerson: fullName,
+            contactPersonPhone: phone,
+            contactPersonEmail: email
+
         }
         try {
             const resp = await addOperator(body);
