@@ -167,11 +167,10 @@ export const OperatorDetails = (): JSX.Element => {
   const [activeTab, setActiveTab] = useState("overview");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-    console.log("Operator Metrics:", operatorSummary);
-    performanceMetrics[0].value =  formatCurrencyCompact(operatorData?.totalStakeWinningAmountByOperator || 0, 'NGN', { locale: 'en-NG' });
+  performanceMetrics[0].value =  formatCurrencyCompact(operatorData?.totalStakeWinningAmountByOperator || 0, 'NGN', { locale: 'en-NG' });
   performanceMetrics[1].value =  formatCompactNumber(operatorData?.totalUniquePlayersByOperator || 0);
   performanceMetrics[2].value =  formatCompactNumber(operatorData?.totalUniqueGamesPlayedByOperator || 0);
-  performanceMetrics[3].value =  formatCurrencyCompact(operatorData?.totalStakeWinningAmountByOperator || 0, 'NGN', { locale: 'en-NG' });
+  performanceMetrics[3].value =  formatCurrencyCompact(operatorData?.totalStakeAmountByOperator || 0, 'NGN', { locale: 'en-NG' });
 
     return (
     <div className="flex min-h-screen bg-gray-5">

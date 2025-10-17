@@ -39,6 +39,8 @@ export interface FilterRequest {
     sort?: string;
     createdFrom?: string;
     createdTo?: string;
+    startDate?: string;
+    endDate?: string;
 }
 
 export interface ResponseMetadata {
@@ -76,4 +78,40 @@ export interface OperatorSummary {
     totalStakes: number;
     totalWinningAmount: number;
     totalWinnings: number;
+}
+
+export interface StakeData {
+    referenceNumber: string;
+    stakeReference: string;
+    operator: {
+            name: string;
+            email: string;
+            phoneNumber: string;
+    };
+    customer: {
+        name: string;
+        gamePlayed: string;
+        gameCode: string;
+        amount: number;
+    }
+    location: {
+        address: string;
+        lgaCode: string;
+        lgaName: string;
+        stateCode: string;
+        stateName: string;
+        countryCode: string;
+    };
+    terminalId: string;
+    clientId: string;
+    createdOn: string;
+}
+
+export interface TransactionData {
+    transactionReference: string;
+    stakeRegistration: StakeData;
+    amountWon: number;
+    clientId: string;
+    transactionDate: string;
+    createdOn: number;
 }

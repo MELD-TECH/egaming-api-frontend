@@ -24,11 +24,13 @@ import {EmailActivate} from "./screens/Auth/EmailActivate/EmailActivate.tsx";
 import {Adjudicator} from "./screens/Adjudicator";
 import {RequirePermission} from "./components/auth/RequirePermission.tsx";
 import {RolePromoter} from "./screens/App/RolePromoter";
+import {AuthEventsGuard} from "./components/auth/AuthEventsGuard.tsx";
 
 export const App: React.FC = () => {
     return (
         <ToastProvider>
             <Router>
+              <AuthEventsGuard />
               <Routes>
                 <Route path="/" element={<Navigate to="/home" replace />} />
                 <Route path="/home"  element={<Home />} />
@@ -49,8 +51,16 @@ export const App: React.FC = () => {
                 } />
                 <Route path="/app/dashboard" element={<AppDashboard />} />
                 <Route path="/reports" element={<Report />} />
-                <Route path="/operators" element={<Operator />} />
-                <Route path="/operator-details/:id" element={<OperatorDetails />} />
+                <Route path="/operators" element={
+                    <RequirePermission anyOf={["CAN_VIEW_OPERATORS"]}>
+                        <Operator />
+                    </RequirePermission>
+                } />
+                <Route path="/operator-details/:id" element={
+                    <RequirePermission anyOf={["CAN_VIEW_OPERATOR"]}>
+                        <OperatorDetails />
+                    </RequirePermission>
+                } />
                 <Route path="/team" element={<Team />} />
                 <Route path="/lga" element={<LGA />} />
                 <Route path="/settings" element={<Settings />} />

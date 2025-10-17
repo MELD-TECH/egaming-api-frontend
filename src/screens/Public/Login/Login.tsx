@@ -9,6 +9,7 @@ import {LoadingButton} from "../../../components/feedback/LoadingButton.tsx";
 import {AlertCard} from "../../../components/feedback/AlertCard.tsx";
 import {useToast} from "../../../components/feedback/Toast.tsx";
 import { getAppInfo } from "../../../lib/httpClient.ts";
+import {RefreshedView} from "../../../components/RefreshedView/RefreshedView.tsx";
 
 
 export const Login = (): JSX.Element => {
@@ -177,6 +178,7 @@ export const Login = (): JSX.Element => {
             <Checkbox
               id="remember"
               checked={rememberMe}
+              // @ts-ignore
               onCheckedChange={setRememberMe}
               className="w-4 h-4 rounded-md border-gray-30 data-[state=checked]:bg-primary-500 data-[state=checked]:border-primary-500"
             />
@@ -220,6 +222,7 @@ export const Login = (): JSX.Element => {
               </button>
             </p>
           </div>
+         <RefreshedView />
         </form>
 
         {/* Footer */}

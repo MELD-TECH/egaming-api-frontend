@@ -199,6 +199,7 @@ export interface CompanyRequest {
     contactPerson: string;
     contactPersonPhone: string;
     contactPersonEmail: string;
+    userId: string;
 }
 
 export interface CompanyResponse {

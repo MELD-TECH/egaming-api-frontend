@@ -173,7 +173,15 @@ function createAxios(baseURL: string): AxiosInstance {
             if (status === 401) {
                 clearAuthToken();
                 if (typeof window !== 'undefined') {
-                    window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+                    const detail = {
+                        at: Date.now(),
+                        status,
+                        requestId,
+                        url: cfg?.url,
+                        method: (cfg?.method || 'get').toUpperCase(),
+                        reason: (data?.error || data?.message || 'unauthorized') as string,
+                    };
+                    window.dispatchEvent(new CustomEvent('auth:unauthorized', { detail }));
                 }
             }
 

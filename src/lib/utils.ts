@@ -197,3 +197,79 @@ export function formatCurrencyCompact(
     const sep = space ? " " : "";
     return position === "prefix" ? `${symbol}${sep}${compact}` : `${compact}${sep}${symbol}`;
 }
+
+/**
+ * Returns a relative time string for a past timestamp (in ms) compared to now.
+ * Examples:
+ *  - 1_000 -> "a second ago"
+ *  - 12_000 -> "few seconds ago"
+ *  - 60_000 -> "a minute ago"
+ *  - 2 * 60_000 -> "2 minutes ago"
+ *  - 60 * 60_000 -> "1 hour ago"
+ *  - 24 * 60 * 60_000 -> "1 day ago"
+ *  - 30 * 24 * 60 * 60_000 -> "30 days ago"
+ *  - 11 * 30 * 24 * 60 * 60_000 -> "11 months ago"
+ *  - 100 * 365 * 24 * 60 * 60_000 -> "100 years ago"
+ */
+export function timeAgoFromMs(pastMs: number, options?: { now?: number }): string {
+    const now = options?.now ?? Date.now();
+    let diff = now - pastMs;
+
+    // Treat future times as "a second ago" (or you can return "in X" if needed)
+    if (diff < 0) diff = 0;
+
+    const sec = 1000;
+    const min = 60 * sec;
+    const hr = 60 * min;
+    const day = 24 * hr;
+    // For coarse humanized ranges, 30 days ≈ 1 month is typically acceptable
+    const month = 30 * day;
+    const year = 365 * day;
+
+    if (diff < 1.5 * sec) return "a second ago";             // ~0–1.5s
+    if (diff < 45 * sec) return "few seconds ago";           // ~1.5s–45s
+    if (diff < 90 * sec) return "a minute ago";              // ~45–90s
+
+    if (diff < 60 * min) {
+        const m = Math.floor(diff / min);                       // 2–59
+        return `${m} minute${m === 1 ? "" : "s"} ago`;
+    }
+
+    if (diff < 24 * hr) {
+        const h = Math.floor(diff / hr);                        // 1–23
+        return `${h} hour${h === 1 ? "" : "s"} ago`;
+    }
+
+    if (diff < 31 * day) {                                    // 1–30
+        const d = Math.floor(diff / day);
+        return `${d} day${d === 1 ? "" : "s"} ago`;
+    }
+
+    if (diff < 12 * month) {                                  // 1–11
+        const mo = Math.floor(diff / month);
+        return `${mo} month${mo === 1 ? "" : "s"} ago`;
+    }
+
+    // Cap years at 100 if you want to strictly satisfy "1 - 100 years"
+    let y = Math.floor(diff / year);                          // 1+
+    if (y > 100) y = 100;
+    return `${y} year${y === 1 ? "" : "s"} ago`;
+}
+
+export const getDateParts = (datePart: string | undefined) : { from: string, to: string } => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = (d.getMonth() + 1).toString().padStart(2, '0'); // Months are zero-based
+    const day = d.getDate().toString().padStart(2, "0");
+
+    // Set the date to the first day of the next month
+    const lastDay = new Date(year, d.getMonth() + 1, 0).getDate();
+
+    const y = (datePart === "YEAR");
+    const m = (datePart === "MONTH");
+
+    const from = `${year}-${y? "01": month}-${m? "01" : day}`;
+    const to = `${year}-${y? "12" : month}-${m? lastDay : day}`;
+
+    return { from, to };
+};

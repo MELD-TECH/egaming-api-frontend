@@ -1,11 +1,12 @@
 import {ArrowLeft, Bell, ChevronDown, Search} from "lucide-react";
 import {Input} from "../ui/input.tsx";
 import {Button} from "../ui/button.tsx";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {getAvatarProps} from "../../lib/utils.ts";
 import {getProfile} from "../../lib/checkPrivilege.ts";
 import {UserProfile} from "../../lib/appModels.ts";
 import {useNavigate} from "react-router-dom";
+import {getAuthToken} from "../../lib/httpClient.ts";
 
 interface HeaderProps {
     title?: string;
@@ -25,6 +26,17 @@ export const Header: React.FC<HeaderProps> = ({
     const nameOrEmail = `${user?.profile?.firstName || ""} ${user?.profile?.lastName || ""}`.trim() || user?.profile?.email;
     const { initials, bgClass, textClass } = getAvatarProps(nameOrEmail);
     const navigate = useNavigate();
+
+    const validToken = () => {
+        const stillValid = getAuthToken();
+        if (!stillValid) {
+            navigate('/logout', {replace: true});
+        }
+    }
+
+    useEffect(() => {
+        validToken();
+    }, [navigate, validToken]);
 
     return (
         <header className="bg-white border-b border-gray-20 px-4 md:px-6 py-4">
