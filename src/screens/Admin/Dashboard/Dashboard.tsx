@@ -1,11 +1,10 @@
-import { useState } from "react";
+import {useEffect, useMemo, useState} from "react";
 import {
     DollarSign,
     Users,
     Activity,
     Building,
     Eye,
-    MoreHorizontal,
     Calendar,
     ArrowUpRight,
     ArrowDownRight, TrendingUp
@@ -14,28 +13,41 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "../../../components/ui/button";
 import { Sidebar } from "../../../components/Sidebar";
 import {Header} from "../../../components/Header";
+import {OperatorData, OperatorSummary, TransactionData} from "../../../lib/appModels.ts";
+import {fetchDashboardMetrics, fetchOperators, fetchWinningTransactions,} from "../../../lib/api.ts";
+import {
+    buildQueryString,
+    formatCompactNumber,
+    formatCurrencyCompact,
+    getAvatarBg, getDateParts,
+    getInitials, timeAgoFromMs
+} from "../../../lib/utils.ts";
+import {useDataLoader} from "../../../hooks/useDataLoader.ts";
+import {DataLoaderBoundary} from "../../../components/common/DataLoaderBoundary.tsx";
+
+
 
 const dashboardStats = [
   {
-    title: "Total Revenue",
-    value: "₦2,420,000",
-    change: "+20.1%",
+    title: "Total Winnings Amount",
+    value: "₦0",
+    change: "0.1%",
     trend: "up",
     icon: DollarSign,
     bgColor: "bg-blue-50",
     iconColor: "text-blue-600"
   },
   {
-    title: "Total Operators",
-    value: "24",
-    change: "+12.5%",
+    title: "Total Winnings",
+    value: "0",
+    change: "+0.1%",
     trend: "up",
     icon: Building,
     bgColor: "bg-green-50",
     iconColor: "text-green-600"
   },
   {
-    title: "Active Users",
+    title: "Total Operators",
     value: "3,456",
     change: "+8.2%",
     trend: "up",
@@ -44,106 +56,105 @@ const dashboardStats = [
     iconColor: "text-purple-600"
   },
   {
-    title: "Total Transactions",
-    value: "45,231",
-    change: "-2.1%",
-    trend: "down",
+    title: "Total Stake Transactions",
+    value: "0",
+    change: "0.1%",
+    trend: "up",
     icon: Activity,
     bgColor: "bg-orange-50",
     iconColor: "text-orange-600"
   }
 ];
 
-const recentOperators = [
-  {
-    id: "OP001",
-    name: "Golden Gaming Ltd",
-    status: "Active",
-    revenue: "₦125,430",
-    joinDate: "Jan 15, 2024",
-    avatar: "GG"
-  },
-  {
-    id: "OP002", 
-    name: "Lucky Strike Entertainment",
-    status: "Active",
-    revenue: "₦89,250",
-    joinDate: "Feb 20, 2024",
-    avatar: "LS"
-  },
-  {
-    id: "OP003",
-    name: "Ace Gaming Solutions", 
-    status: "Pending",
-    revenue: "₦0",
-    joinDate: "Mar 10, 2024",
-    avatar: "AG"
-  },
-  {
-    id: "OP004",
-    name: "Royal Casino Group",
-    status: "Suspended", 
-    revenue: "₦67,890",
-    joinDate: "Nov 5, 2023",
-    avatar: "RC"
-  }
-];
-
-const recentTransactions = [
-  {
-    id: "TXN001",
-    operator: "Golden Gaming Ltd",
-    amount: "₦15,000",
-    type: "Deposit",
-    status: "Completed",
-    date: "2 hours ago"
-  },
-  {
-    id: "TXN002",
-    operator: "Lucky Strike Entertainment", 
-    amount: "₦8,500",
-    type: "Withdrawal",
-    status: "Pending",
-    date: "4 hours ago"
-  },
-  {
-    id: "TXN003",
-    operator: "Diamond Gaming Corp",
-    amount: "₦22,300",
-    type: "Deposit", 
-    status: "Completed",
-    date: "6 hours ago"
-  },
-  {
-    id: "TXN004",
-    operator: "Royal Casino Group",
-    amount: "₦5,750",
-    type: "Withdrawal",
-    status: "Failed",
-    date: "1 day ago"
-  }
-];
-
 const getStatusColor = (status: string) => {
   switch (status) {
-    case "Active":
+    case "VERIFIED":
       return "bg-green-100 text-green-800";
-    case "Pending":
+    case "UNVERIFIED":
       return "bg-yellow-100 text-yellow-800";
-    case "Suspended":
-      return "bg-red-100 text-red-800";
-    case "Completed":
-      return "bg-green-100 text-green-800";
-    case "Failed":
+    case "UNKNOWN":
       return "bg-red-100 text-red-800";
     default:
       return "bg-gray-100 text-gray-800";
   }
 };
 
+const useDashboardSummary = (): OperatorSummary | undefined => {
+    const [summary, setSummary] = useState<OperatorSummary>();
+
+    useEffect(() => {
+        const getSummary = async () => {
+            try {
+                const response = await fetchDashboardMetrics();
+                const data = await response?.data;
+                if(data) setSummary(data?.data);
+            } catch (error) {
+                console.error('Error fetching dashboard summary:', error);
+            }
+        };
+        getSummary();
+    }, []);
+
+    return summary;
+}
+
+function useRecentOperators() : { data: any, loading: boolean, error: any, reload: any } {
+    type OperatorsPayload = {
+        page: number; size: number; totalPages: number; total: number; previous: number; next: number; data: OperatorData[]
+    };
+
+    const params = useMemo(() => ({ page: 0, size: 5, status: '', sort: 'createdOn-desc' }), [0, 5, '', 'createdOn-desc']);
+
+    return useDataLoader<OperatorsPayload, typeof params>(
+        async (p, ) => {
+            const qs = buildQueryString({ page: p.page, size: p.size, status: p.status === 'all' ? undefined : p.status, sort: p.sort });
+            const resp = await fetchOperators(qs);
+            const payload = resp?.data?.data as OperatorsPayload | undefined;
+            if (!payload) throw new Error('Malformed response from server');
+            return payload;
+        },
+        { params, preservePreviousData: true }
+    );
+}
+
+function useTransactions(datePart: string) : { data: any, loading: boolean, error: any, reload: any } {
+    type OperatorsPayload = {
+        page: number; size: number; totalPages: number; total: number; previous: number; next: number; data: TransactionData[]
+    };
+
+    const { from, to } = getDateParts(datePart);
+
+    const params = useMemo(() => ({ page: 0, size: 5, status: '', sort: 'createdOn-desc' }), [0, 5, '', 'createdOn-desc']);
+
+    return useDataLoader<OperatorsPayload, typeof params>(
+        async (p, ) => {
+            const qs = buildQueryString({ page: p.page, size: p.size,
+                status: p.status === 'all' ? undefined : p.status, sort: p.sort,
+                startDate: from.concat('T00:00:00Z'), endDate: to.concat('T23:59:59Z') });
+            const resp = await fetchWinningTransactions(qs);
+            const payload = resp?.data?.data as OperatorsPayload | undefined;
+            if (!payload) throw new Error('Malformed response from server');
+            return payload;
+        },
+        { params, preservePreviousData: true }
+    );
+}
+
 export const Dashboard = (): JSX.Element => {
+  const dashboardSummary = useDashboardSummary();
+  const { data, loading, error, reload } = useRecentOperators();
+  const { data: trxData, loading: trxLoading, error: trxError, reload: trxReload } = useTransactions("MONTH");
+
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
+
+  dashboardStats[0].value = formatCurrencyCompact(dashboardSummary?.totalWinningAmount || 0, 'NGN', { locale: 'en-NG' });
+  dashboardStats[1].value = formatCompactNumber(dashboardSummary?.totalWinnings || 0);
+  dashboardStats[2].value = formatCompactNumber(dashboardSummary?.totalOperators || 0);
+  dashboardStats[3].value = formatCompactNumber(dashboardSummary?.totalStakes || 0);
+
+    const recentOperators: OperatorData[] = data?.data ?? [];
+    const recentTransactions: TransactionData[] = trxData?.data ?? [];
 
   return (
     <div className="flex min-h-screen bg-gray-5">
@@ -157,7 +168,7 @@ export const Dashboard = (): JSX.Element => {
           <Header title={"Admin Dashboard"} />
 
         <div className="flex-1 p-4 md:p-6 space-y-6">
-          {/* Welcome Section */}
+          {/* Welcome, Section */}
           <div className="bg-gradient-to-r from-primary-500 to-brand-60 rounded-xl p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
@@ -206,118 +217,135 @@ export const Dashboard = (): JSX.Element => {
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-gray-60">{stat.title}</p>
                   <p className="text-2xl font-bold text-gray-80">{stat.value}</p>
-                  <p className="text-xs text-gray-40">from last month</p>
+                  <p className="text-xs text-gray-40">Up till now</p>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Recent Operators */}
-            <div className="lg:col-span-2 bg-white rounded-xl border border-gray-20">
-              <div className="p-6 border-b border-gray-20">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-gray-80">
-                    Recent Operators
-                  </h3>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => navigate('/operators')}
-                  >
-                    View All
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="p-6 space-y-4">
-                {recentOperators.map((operator, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 bg-gray-5 rounded-lg hover:bg-gray-20 transition-colors">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-primary-500 rounded-lg flex items-center justify-center">
-                        <span className="text-white font-bold text-sm">
-                          {operator.avatar}
-                        </span>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-80 text-sm">
-                          {operator.name}
-                        </h4>
-                        <p className="text-xs text-gray-60">
-                          ID: {operator.id} • Joined {operator.joinDate}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-3">
-                      <div className="text-right">
-                        <p className="font-semibold text-gray-80 text-sm">
-                          {operator.revenue}
-                        </p>
-                        <span
-                          className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(operator.status)}`}
-                        >
-                          {operator.status}
-                        </span>
-                      </div>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-8 w-8 p-0"
-                        onClick={() => navigate(`/operators/${operator.id}`)}
+            <DataLoaderBoundary
+                loading={loading}
+                error={error}
+                isEmpty={!loading && !error && recentOperators.length === 0}
+                emptyTitle="No operators found"
+                emptySubtitle="Try changing filters or check back later."
+                onRetry={reload}
+            >
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Recent Operators */}
+                <div className="lg:col-span-2 bg-white rounded-xl border border-gray-20">
+                  <div className="p-6 border-b border-gray-20">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-bold text-gray-80">
+                        Recent Operators
+                      </h3>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate('/operators')}
                       >
-                        <Eye className="w-4 h-4 text-gray-60" />
+                        View All
                       </Button>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
 
-            {/* Quick Actions */}
-            <div className="bg-white rounded-xl border border-gray-20">
-              <div className="p-6 border-b border-gray-20">
-                <h3 className="text-lg font-bold text-gray-80">Quick Actions</h3>
+                  <div className="p-6 space-y-4">
+                    {recentOperators.map((operator, index) => (
+                      <div key={index} className="flex items-center justify-between p-4 bg-gray-5 rounded-lg hover:bg-gray-20 transition-colors">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-12 h-12 ${getAvatarBg(operator?.name)} rounded-lg flex items-center justify-center`}>
+                            <span className="text-white font-bold text-sm">
+                              {getInitials(operator?.name)}
+                            </span>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-80 text-sm">
+                              {operator.name}
+                            </h4>
+                            <p className="text-xs text-gray-60">
+                              ID: {operator.registrationNumber} • Joined {new Date(operator.createdOn * 1000).toDateString()}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <div className="text-right">
+                            <p className="font-semibold text-gray-80 text-sm">
+                              {formatCurrencyCompact(operator.totalStakeAmountByOperator, 'NGN', { locale: 'en-NG' })}
+                            </p>
+                            <span
+                              className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(operator.status)}`}
+                            >
+                              {operator.status}
+                            </span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => navigate(`/operator-details/${operator.registrationNumber}`, { state: { operator } })}
+                          >
+                            <Eye className="w-4 h-4 text-gray-60" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Quick Actions */}
+                <div className="bg-white rounded-xl border border-gray-20">
+                  <div className="p-6 border-b border-gray-20">
+                    <h3 className="text-lg font-bold text-gray-80">Quick Actions</h3>
+                  </div>
+
+                  <div className="p-6 space-y-3">
+                    <Button
+                      className="w-full justify-start h-12 bg-primary-500 hover:bg-primary-600 text-white"
+                      onClick={() => navigate('/operators')}
+                    >
+                      <Building className="w-5 h-5 mr-3" />
+                      View Operators
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start h-12"
+                      onClick={() => navigate('/reports')}
+                    >
+                      <Activity className="w-5 h-5 mr-3" />
+                      Generate Report
+                    </Button>
+
+                    {/*<Button*/}
+                    {/*  variant="outline"*/}
+                    {/*  className="w-full justify-start h-12"*/}
+                    {/*>*/}
+                    {/*  <Users className="w-5 h-5 mr-3" />*/}
+                    {/*  Manage Users*/}
+                    {/*</Button>*/}
+
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start h-12"
+                    >
+                      <DollarSign className="w-5 h-5 mr-3" />
+                      View Transactions
+                    </Button>
+                  </div>
+                </div>
               </div>
-              
-              <div className="p-6 space-y-3">
-                <Button 
-                  className="w-full justify-start h-12 bg-primary-500 hover:bg-primary-600 text-white"
-                  onClick={() => navigate('/operators')}
-                >
-                  <Building className="w-5 h-5 mr-3" />
-                  Add New Operator
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start h-12"
-                  onClick={() => navigate('/reports')}
-                >
-                  <Activity className="w-5 h-5 mr-3" />
-                  Generate Report
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start h-12"
-                >
-                  <Users className="w-5 h-5 mr-3" />
-                  Manage Users
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start h-12"
-                >
-                  <DollarSign className="w-5 h-5 mr-3" />
-                  View Transactions
-                </Button>
-              </div>
-            </div>
-          </div>
+            </DataLoaderBoundary>
 
           {/* Recent Transactions */}
+          <DataLoaderBoundary
+                loading={trxLoading}
+                error={trxError}
+                isEmpty={!trxLoading && !trxError && recentTransactions.length === 0}
+                emptyTitle="No tranactions found"
+                emptySubtitle="Try changing filters or check back later."
+                onRetry={trxReload}
+          >
           <div className="bg-white rounded-xl border border-gray-20">
             <div className="p-6 border-b border-gray-20">
               <div className="flex items-center justify-between">
@@ -344,16 +372,13 @@ export const Dashboard = (): JSX.Element => {
                       Amount
                     </th>
                     <th className="text-left p-4 text-sm font-semibold text-gray-60">
-                      Type
+                      Player
                     </th>
                     <th className="text-left p-4 text-sm font-semibold text-gray-60">
-                      Status
+                      Game Played
                     </th>
                     <th className="text-left p-4 text-sm font-semibold text-gray-60">
                       Date
-                    </th>
-                    <th className="text-left p-4 text-sm font-semibold text-gray-60">
-                      Actions
                     </th>
                   </tr>
                 </thead>
@@ -361,37 +386,22 @@ export const Dashboard = (): JSX.Element => {
                   {recentTransactions.map((transaction, index) => (
                     <tr key={index} className="border-b border-gray-20 hover:bg-gray-5 transition-colors">
                       <td className="p-4 text-sm font-medium text-gray-80">
-                        {transaction.id}
+                        {transaction.transactionReference}
                       </td>
                       <td className="p-4 text-sm text-gray-60">
-                        {transaction.operator}
+                        {transaction.stakeRegistration?.operator?.name || "Unknown Operator"}
                       </td>
                       <td className="p-4 text-sm font-semibold text-gray-80">
-                        {transaction.amount}
+                        {formatCurrencyCompact(transaction.amountWon, 'NGN', { locale: 'en-NG' }) }
                       </td>
                       <td className="p-4">
-                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                          transaction.type === "Deposit" 
-                            ? "bg-blue-100 text-blue-800" 
-                            : "bg-purple-100 text-purple-800"
-                        }`}>
-                          {transaction.type}
-                        </span>
+                          {transaction.stakeRegistration?.customer?.name}
                       </td>
                       <td className="p-4">
-                        <span
-                          className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(transaction.status)}`}
-                        >
-                          {transaction.status}
-                        </span>
+                          {transaction.stakeRegistration?.customer?.gamePlayed}
                       </td>
                       <td className="p-4 text-sm text-gray-60">
-                        {transaction.date}
-                      </td>
-                      <td className="p-4">
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="w-4 h-4 text-gray-60" />
-                        </Button>
+                        {timeAgoFromMs(transaction.createdOn * 1000)}
                       </td>
                     </tr>
                   ))}
@@ -399,6 +409,7 @@ export const Dashboard = (): JSX.Element => {
               </table>
             </div>
           </div>
+          </DataLoaderBoundary>
 
           {/* Revenue Chart Placeholder */}
           <div className="bg-white rounded-xl border border-gray-20 p-6">

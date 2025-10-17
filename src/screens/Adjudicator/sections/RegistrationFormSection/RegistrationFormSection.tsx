@@ -79,7 +79,7 @@ export const RegistrationFormSection = (): JSX.Element => {
             return;
         }
         // The logic here is to check if the user has filled in all the required fields.
-        const { fullName, email, phone } = getUserContact();
+        const { fullName, email, phone, userId } = getUserContact();
         const body: CompanyRequest = {
             registrationNumber: brn,
             name: companyName,
@@ -89,8 +89,8 @@ export const RegistrationFormSection = (): JSX.Element => {
             lga: selectedLgaId,
             contactPerson: fullName,
             contactPersonPhone: phone,
-            contactPersonEmail: email
-
+            contactPersonEmail: email,
+            userId
         }
         try {
             const resp = await addOperator(body);

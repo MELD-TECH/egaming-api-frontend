@@ -28,7 +28,7 @@ import {
     UploadResponse, UploadRequest, GenericResponse, OperatorMetricsResponse
 } from './models';
 import {getBase64Image} from "./uploaders.ts";
-import {OperatorData} from "./appModels.ts";
+import {OperatorData, TransactionData} from "./appModels.ts";
 
 export { httpGet, httpPost, httpPut, httpPatch, httpDelete, ApiError, setAuthToken, clearAuthToken, setAppInfo, clearAllAppInfo  };
 export type { ApiResponse };
@@ -70,6 +70,8 @@ const GET_LGA_URL =  `/region/api/v1/lgas?stateCode=${STATE_CODE}&size=`;
 const OPERATOR_URL =  `/platform/api/v1/operators`;
 const OPERATORS_METRICS_URL =  `/platform/api/v1/metrics/operators`;
 const OPERATOR_METRICS_URL =  `/platform/api/v1/metrics/summary/by-operator/`;
+const DASHBOARD_METRICS_URL =  `/platform/api/v1/metrics/summary`;
+const WINNING_TRANSACTIONS_URL =  `platform/api/v1/stakes/winnings`;
 
 
 export { LOGIN_URL };
@@ -177,4 +179,12 @@ export async function fetchOperators(queryString: string) {
 
 export async function fetchOperatorMetric(operatorId: string | undefined) {
     return httpGet<OperatorMetricsResponse>(`${OPERATOR_METRICS_URL}${operatorId}`, { base: 'api' });
+}
+
+export async function fetchDashboardMetrics() {
+    return httpGet<OperatorMetricsResponse>(DASHBOARD_METRICS_URL, { base: 'api' });
+}
+
+export async function fetchWinningTransactions(queryString: string) {
+    return httpGet<GenericResponse<TransactionData>>(`${WINNING_TRANSACTIONS_URL}?${queryString}`, { base: 'api' });
 }
