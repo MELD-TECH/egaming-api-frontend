@@ -5,7 +5,8 @@ import { SignUp } from './screens/Public/SignUp/SignUp';
 import { ResetPassword } from './screens/Public/ResetPassword/ResetPassword';
 import { Dashboard } from './screens/Admin/Dashboard/Dashboard';
 import { Dashboard as AppDashboard } from './screens/App/Dashboard/Dashboard';
-import { Report } from './screens/Report/Report';
+import { Report } from './screens/Admin/Report/Report';
+import { Report as AppReport } from './screens/Report/Report';
 import { Operator } from './screens/Admin/Operator/Operator';
 import { OperatorDetails } from './screens/Admin/OperatorDetails/OperatorDetails';
 import { Team } from './screens/Team';
@@ -50,7 +51,12 @@ export const App: React.FC = () => {
                     </RequirePermission>
                 } />
                 <Route path="/app/dashboard" element={<AppDashboard />} />
-                <Route path="/reports" element={<Report />} />
+                <Route path="/admin/reports" element={
+                    <RequirePermission anyOf={["CAN_VIEW_REPORTS"]}>
+                        <Report />
+                    </RequirePermission>
+                } />
+                <Route path="/reports" element={<AppReport />} />
                 <Route path="/operators" element={
                     <RequirePermission anyOf={["CAN_VIEW_OPERATORS"]}>
                         <Operator />
