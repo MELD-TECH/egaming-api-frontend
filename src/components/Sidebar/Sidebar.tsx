@@ -42,8 +42,15 @@ const navigationItems = [
   {
     title: 'Reports',
     icon: FileText,
-    path: '/reports',
+    path: '/admin/reports',
     id: 'reports',
+    access: false
+  },
+  {
+    title: 'Reports',
+    icon: FileText,
+    path: '/reports',
+    id: 'app-reports',
     access: false
   },
   {
@@ -107,11 +114,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
     useEffect(() => {
         const privileges = [
             ['CAN_VIEW_DASHBOARD'], ['CAN_VIEW_MINI_REPORTS'], ['CAN_VIEW_REPORTS'],
-            ['CAN_VIEW_APPLICATIONS'], ['CAN_VIEW_SETTINGS']];
+            ['CAN_VIEW_MINI_REPORTS'], ['CAN_VIEW_APPLICATIONS'], ['CAN_VIEW_SETTINGS']];
         let index = 0;
         for(const navItem in navigationItems ) {
             if(navigationItems[navItem].id === 'settings') continue;
-            navigationItems[navItem].access = hasPermission({anyOf: privileges[++index]});
+            navigationItems[navItem].access = hasPermission({anyOf: privileges[index++]});
         }
     }, [navigationItems]);
 

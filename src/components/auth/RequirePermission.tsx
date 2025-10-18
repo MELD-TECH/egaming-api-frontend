@@ -61,9 +61,6 @@ export function hasPermission({anyOf, allOf}: { anyOf?: string[]; allOf?: string
     const stored = safeParse<StoredPerm>(raw, { permissions: [] });
     const userPerms = new Set((stored.permissions || []).map((p) => p.toLowerCase()));
 
-    console.log("hasPermission", stored);
-    console.log("anyOf", anyOf);
-
     const hasAny = (anyOf || []).some((p: string) => userPerms.has(p.toLowerCase()));
     const hasAll = (allOf || []).every((p: string) => userPerms.has(p.toLowerCase()));
 
