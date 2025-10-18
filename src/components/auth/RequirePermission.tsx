@@ -1,5 +1,5 @@
 import React from 'react';
-import { getAppInfo } from '../../lib/httpClient';
+import {getAppInfo} from '../../lib/httpClient';
 
 // A small helper to safely parse JSON
 function safeParse<T>(raw: string | null, fallback: T): T {
@@ -55,6 +55,24 @@ export const RequirePermission: React.FC<RequirePermissionProps> = ({
 
     return <>{children}</>;
 };
+
+export function hasPermission({anyOf, allOf}: { anyOf?: string[]; allOf?: string[] }): boolean {
+    const raw = getAppInfo('perm');
+    const stored = safeParse<StoredPerm>(raw, { permissions: [] });
+    const userPerms = new Set((stored.permissions || []).map((p) => p.toLowerCase()));
+
+    console.log("hasPermission", stored);
+    console.log("anyOf", anyOf);
+
+    const hasAny = (anyOf || []).some((p: string) => userPerms.has(p.toLowerCase()));
+    const hasAll = (allOf || []).every((p: string) => userPerms.has(p.toLowerCase()));
+
+    if (anyOf && anyOf.length > 0) return hasAny;
+    if (allOf && allOf.length > 0) return hasAll;
+    // If nothing specified, default to deny for safety
+    return false;
+}
+
 
 // A simple default Access Denied UI
 const AccessDenied: React.FC = () => (

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -16,30 +16,42 @@ import {
 import { Button } from '../ui/button';
 import {cn, getAvatarProps} from '../../lib/utils';
 import {useUserProfile} from "../../lib/hooks.ts";
+import {hasPermission} from "../auth/RequirePermission.tsx";
 
 interface SidebarProps {
   isCollapsed?: boolean;
   onToggle?: () => void;
 }
 
+
 const navigationItems = [
   {
     title: 'Dashboard',
     icon: LayoutDashboard,
-    path: '/app/dashboard',
-    id: 'dashboard'
+    path: '/admin/dashboard',
+    id: 'dashboard',
+    access: false
+  },
+  {
+      title: 'Dashboard',
+      icon: LayoutDashboard,
+      path: '/app/dashboard',
+      id: 'app-dashboard',
+      access: false
   },
   {
     title: 'Reports',
     icon: FileText,
     path: '/reports',
-    id: 'reports'
+    id: 'reports',
+    access: false
   },
   {
     title: 'Operators',
     icon: Users,
     path: '/operators',
-    id: 'operators'
+    id: 'operators',
+    access: false
   },
   // {
   //   title: 'LGA',
@@ -57,7 +69,8 @@ const navigationItems = [
     title: 'Settings',
     icon: Settings,
     path: '/settings',
-    id: 'settings'
+    id: 'settings',
+    access: true
   }
 ];
 
@@ -90,6 +103,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
       if (id === 'dashboard' && user?.profile?.settings?.role.toLowerCase() === 'admin') return '/admin/dashboard';
       return path;
   }
+
+    useEffect(() => {
+        const privileges = [
+            ['CAN_VIEW_DASHBOARD'], ['CAN_VIEW_MINI_REPORTS'], ['CAN_VIEW_REPORTS'],
+            ['CAN_VIEW_APPLICATIONS'], ['CAN_VIEW_SETTINGS']];
+        let index = 0;
+        for(const navItem in navigationItems ) {
+            if(navigationItems[navItem].id === 'settings') continue;
+            navigationItems[navItem].access = hasPermission({anyOf: privileges[++index]});
+        }
+    }, [navigationItems]);
 
   return (
     <div className={cn(
@@ -143,7 +167,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 variant="ghost"
                 onClick={() => handleNavigation(determinePath(item.id, item.path))}
                 className={cn(
-                  "w-full justify-start h-12 px-3 rounded-xl transition-all duration-200",
+                  `${item.access? '' : 'hidden'} w-full justify-start h-12 px-3 rounded-xl transition-all duration-200`,
                   isCollapsed ? "px-0 justify-center" : "justify-start",
                   isActive 
                     ? "bg-primary-500 text-white hover:bg-primary-600" 
