@@ -50,7 +50,7 @@ const getStatusColor = (status: string) => {
 
 export const Operator = (): JSX.Element => {
   const [statusFilter, setStatusFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("createdOn");
+  const [sortBy, setSortBy] = useState("createdOn-desc");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
     const navigate = useNavigate();
@@ -123,8 +123,8 @@ export const Operator = (): JSX.Element => {
                                         <SelectValue placeholder="Sort by" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="createdOn">Newest First</SelectItem>
-                                        <SelectItem value="registrationNumber">Business Number</SelectItem>
+                                        <SelectItem value="createdOn-desc">Newest First</SelectItem>
+                                        <SelectItem value="registrationNumber-desc">Business Number</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>

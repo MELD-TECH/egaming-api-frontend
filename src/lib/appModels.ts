@@ -35,12 +35,16 @@ export interface FilterRequest {
     name?: string;
     search?: string;
     lga?: string;
+    operatorPublicId?: string;
     status?: string;
     sort?: string;
     createdFrom?: string;
     createdTo?: string;
     startDate?: string;
     endDate?: string;
+    from?: string;
+    to?: string;
+    limit?: number;
 }
 
 export interface ResponseMetadata {
@@ -109,9 +113,24 @@ export interface StakeData {
 
 export interface TransactionData {
     transactionReference: string;
+    referenceNumber: string;
     stakeRegistration: StakeData;
     amountWon: number;
     clientId: string;
     transactionDate: string;
     createdOn: number;
+}
+
+export interface TrendSeriesData {
+    gameCode: string;
+    gameName: string;
+    gamesPlayed: number;
+    amountWon: number;
+}
+
+export interface PerformanceDistributionData {
+    gameCode: string;
+    gameName: string;
+    count: number;
+    percent: number;
 }

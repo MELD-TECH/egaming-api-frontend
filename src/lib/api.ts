@@ -25,7 +25,8 @@ import {
     AuthUrlResponse, EmptyRequest, UserPermissionResponse, ProfileAccount, PasswordResetResponse,
     OtpVerificationResponse, UserAccountResponse, UserAccountRequest, OperatorVerificationRequest,
     OperatorVerificationResponse, LgaResponse, CompanyRequest, CompanyResponse, SignerConfig, ProfileUpdateRequest,
-    UploadResponse, UploadRequest, GenericResponse, OperatorMetricsResponse
+    UploadResponse, UploadRequest, GenericResponse, OperatorMetricsResponse, TrendSeriesResponse,
+    PerformanceDistributionResponse
 } from './models';
 import {getBase64Image} from "./uploaders.ts";
 import {OperatorData, TransactionData} from "./appModels.ts";
@@ -71,7 +72,9 @@ const OPERATOR_URL =  `/platform/api/v1/operators`;
 const OPERATORS_METRICS_URL =  `/platform/api/v1/metrics/operators`;
 const OPERATOR_METRICS_URL =  `/platform/api/v1/metrics/summary/by-operator/`;
 const DASHBOARD_METRICS_URL =  `/platform/api/v1/metrics/summary`;
-const WINNING_TRANSACTIONS_URL =  `platform/api/v1/stakes/winnings`;
+const WINNING_TRANSACTIONS_URL =  `/platform/api/v1/stakes/winnings`;
+const TREND_SERIES_URL =  `/platform/api/v1/metrics/analytics/amount-won-vs-games`;
+const DISTRIBUTION_URL =  `/platform/api/v1/metrics/analytics/games-distribution`;
 
 
 export { LOGIN_URL };
@@ -187,4 +190,12 @@ export async function fetchDashboardMetrics() {
 
 export async function fetchWinningTransactions(queryString: string) {
     return httpGet<GenericResponse<TransactionData>>(`${WINNING_TRANSACTIONS_URL}?${queryString}`, { base: 'api' });
+}
+
+export async function fetchTrendSeries(queryString: string) {
+    return httpGet<TrendSeriesResponse>(`${TREND_SERIES_URL}?${queryString}`, { base: 'api' });
+}
+
+export async function fetchPerformanceDistribution(queryString: string) {
+    return httpGet<PerformanceDistributionResponse>(`${DISTRIBUTION_URL}?${queryString}`, { base: 'api' });
 }

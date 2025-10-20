@@ -7,14 +7,15 @@ import {
     Eye,
     Calendar,
     ArrowUpRight,
-    ArrowDownRight, TrendingUp
+    ArrowDownRight,
+    // TrendingUp
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../../components/ui/button";
 import { Sidebar } from "../../../components/Sidebar";
 import {Header} from "../../../components/Header";
-import {OperatorData, OperatorSummary, TransactionData} from "../../../lib/appModels.ts";
-import {fetchDashboardMetrics, fetchOperators, fetchWinningTransactions,} from "../../../lib/api.ts";
+import {OperatorData, OperatorSummary, TransactionData, TrendSeriesData} from "../../../lib/appModels.ts";
+import {fetchDashboardMetrics, fetchOperators, fetchTrendSeries, fetchWinningTransactions,} from "../../../lib/api.ts";
 import {
     buildQueryString,
     formatCompactNumber,
@@ -24,6 +25,8 @@ import {
 } from "../../../lib/utils.ts";
 import {useDataLoader} from "../../../hooks/useDataLoader.ts";
 import {DataLoaderBoundary} from "../../../components/common/DataLoaderBoundary.tsx";
+import {ChartCard} from "../../../components/charts/ChartCard.tsx";
+import {SimpleLineChart} from "../../../components/charts/SimpleLineChart.tsx";
 
 
 
@@ -140,10 +143,38 @@ function useTransactions(datePart: string) : { data: any, loading: boolean, erro
     );
 }
 
+function useTrendDataReport(datePart: string, page: number, size: number) : { data: any, loading: boolean, error: any, reload: any } {
+    type TrendsPayload = {
+        page: number; size: number; totalPages: number; total: number; previous: number; next: number; data: TrendSeriesData[]
+    };
+
+    const { from, to } = getDateParts(datePart);
+
+    const params = useMemo(() =>
+        ({ page, size, status: '', from, to, limit: size, sort: 'createdOn-desc' }), [page, size, '', from, to, size, 'createdOn-desc']);
+
+    console.log('params ', params);
+
+    return useDataLoader<TrendsPayload, typeof params>(
+        async (p, ) => {
+            const qs = buildQueryString({ page: p.page, size: p.size, limit: p.size, sort: p.sort,
+                from: p.from.concat('T00:00:00Z'), to: p.to.concat('T23:59:59Z') });
+            const resp = await fetchTrendSeries(qs);
+            const payload = resp?.data as TrendsPayload | undefined;
+            if (!payload) throw new Error('Malformed response from server');
+            return payload;
+        },
+        { params, preservePreviousData: true }
+    );
+}
+
 export const Dashboard = (): JSX.Element => {
   const dashboardSummary = useDashboardSummary();
+  const [dateRange, setDateRange] = useState("YEAR");
+
   const { data, loading, error, reload } = useRecentOperators();
   const { data: trxData, loading: trxLoading, error: trxError, reload: trxReload } = useTransactions("MONTH");
+  const { data: trendData, } = useTrendDataReport(dateRange, 0, 6);
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
@@ -155,6 +186,7 @@ export const Dashboard = (): JSX.Element => {
 
     const recentOperators: OperatorData[] = data?.data ?? [];
     const recentTransactions: TransactionData[] = trxData?.data ?? [];
+    const trendSeriesData: TrendSeriesData[] = trendData?.data ?? [];
 
   return (
     <div className="flex min-h-screen bg-gray-5">
@@ -311,19 +343,11 @@ export const Dashboard = (): JSX.Element => {
                     <Button
                       variant="outline"
                       className="w-full justify-start h-12"
-                      onClick={() => navigate('/reports')}
+                      onClick={() => navigate('/admin/reports')}
                     >
                       <Activity className="w-5 h-5 mr-3" />
                       Generate Report
                     </Button>
-
-                    {/*<Button*/}
-                    {/*  variant="outline"*/}
-                    {/*  className="w-full justify-start h-12"*/}
-                    {/*>*/}
-                    {/*  <Users className="w-5 h-5 mr-3" />*/}
-                    {/*  Manage Users*/}
-                    {/*</Button>*/}
 
                     <Button
                       variant="outline"
@@ -412,29 +436,65 @@ export const Dashboard = (): JSX.Element => {
           </DataLoaderBoundary>
 
           {/* Revenue Chart Placeholder */}
-          <div className="bg-white rounded-xl border border-gray-20 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-bold text-gray-80">Revenue Overview</h3>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" className="h-9">
-                  <Calendar className="w-4 h-4 mr-2" />
-                  Last 30 days
-                </Button>
-              </div>
-            </div>
-            
-            <div className="h-80 bg-gray-5 rounded-lg flex items-center justify-center">
-              <div className="text-center">
-                <TrendingUp className="w-16 h-16 text-gray-40 mx-auto mb-4" />
-                <h4 className="text-lg font-semibold text-gray-60 mb-2">Revenue Analytics Chart</h4>
-                <p className="text-sm text-gray-40 max-w-xs">
-                  Interactive revenue chart showing trends and performance metrics over time
-                </p>
-              </div>
-            </div>
-          </div>
+          {/*  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center justify-between mb-6">*/}
+            <div className="bg-white rounded-xl border border-gray-20 p-6">
+                <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-lg font-bold text-gray-80">Revenue Overview</h3>
+                    <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" className="h-9"
+                                onClick={() => setDateRange("MONTH_TO_DATE")} type="button">
+                            <Calendar className="w-4 h-4 mr-2" />
+                            Last 30 days
+                        </Button>
+                    </div>
+                </div>
+                {/* Revenue Trends */}
+                <ChartCard
+                    title="Revenue Trends"
+                    actions={[{ key: "line", label: "Line", active: true, onClick: () => {} }]}
+                >
+                    {(() => {
+                        const grouped = trendSeriesData;
+                        const labels = grouped.map(g => g.gameName);
+                        const revenue = grouped.map(g => g.amountWon);
+                        const totalBets = grouped.map(g => g.gamesPlayed);
+                        return (
+                            <SimpleLineChart
+                                labels={labels}
+                                series={[
+                                    { name: "Revenue (₦)", color: "#14532D", data: revenue },
+                                    { name: "Total Bets", color: "#7C3AED", data: totalBets },
+                                ]}
+                                yFormatter={(v) => v.toLocaleString("en-NG")}
+                                width={960}
+                            />
+                        );
+                    })()}
+                </ChartCard>
+          {/*<div className="bg-white rounded-xl border border-gray-20 p-6">*/}
+          {/*  <div className="flex items-center justify-between mb-6">*/}
+          {/*    <h3 className="text-lg font-bold text-gray-80">Revenue Overview</h3>*/}
+          {/*    <div className="flex items-center gap-2">*/}
+          {/*      <Button variant="outline" size="sm" className="h-9">*/}
+          {/*        <Calendar className="w-4 h-4 mr-2" />*/}
+          {/*        Last 30 days*/}
+          {/*      </Button>*/}
+          {/*    </div>*/}
+          {/*  </div>*/}
+          {/*  */}
+          {/*  <div className="h-80 bg-gray-5 rounded-lg flex items-center justify-center">*/}
+          {/*    <div className="text-center">*/}
+          {/*      <TrendingUp className="w-16 h-16 text-gray-40 mx-auto mb-4" />*/}
+          {/*      <h4 className="text-lg font-semibold text-gray-60 mb-2">Revenue Analytics Chart</h4>*/}
+          {/*      <p className="text-sm text-gray-40 max-w-xs">*/}
+          {/*        Interactive revenue chart showing trends and performance metrics over time*/}
+          {/*      </p>*/}
+          {/*    </div>*/}
+          {/*  </div>*/}
+          {/*</div>*/}
         </div>
       </div>
+     </div>
     </div>
   );
 };
