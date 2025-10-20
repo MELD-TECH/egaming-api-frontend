@@ -256,20 +256,101 @@ export function timeAgoFromMs(pastMs: number, options?: { now?: number }): strin
     return `${y} year${y === 1 ? "" : "s"} ago`;
 }
 
-export const getDateParts = (datePart: string | undefined) : { from: string, to: string } => {
-    const d = new Date();
-    const year = d.getFullYear();
-    const month = (d.getMonth() + 1).toString().padStart(2, '0'); // Months are zero-based
-    const day = d.getDate().toString().padStart(2, "0");
+export const getDateParts = (
+    datePart: string | undefined
+): { from: string; to: string } => {
+    const now = new Date();
 
-    // Set the date to the first day of the next month
-    const lastDay = new Date(year, d.getMonth() + 1, 0).getDate();
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
-    const y = (datePart === "YEAR");
-    const m = (datePart === "MONTH");
+    // Change to 0 for Sunday start-of-week if needed
+    const WEEK_STARTS_ON = 1 as 0 | 1; // 1 = Monday, 0 = Sunday
 
-    const from = `${year}-${y? "01": month}-${m? "01" : day}`;
-    const to = `${year}-${y? "12" : month}-${m? lastDay : day}`;
+    const startOfWeek = (d: Date, weekStartsOn: 0 | 1 = WEEK_STARTS_ON) => {
+        const date = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        const day = date.getDay();
+        const diff = ((day < weekStartsOn ? 7 : 0) + day) - weekStartsOn;
+        date.setDate(date.getDate() - diff);
+        return date;
+    };
 
-    return { from, to };
+    const endOfWeek = (d: Date, weekStartsOn: 0 | 1 = WEEK_STARTS_ON) => {
+        const start = startOfWeek(d, weekStartsOn);
+        const end = new Date(start);
+        end.setDate(start.getDate() + 6);
+        return end;
+    };
+
+    const startOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1);
+    const endOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth() + 1, 0);
+    const startOfLastMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth() - 1, 1);
+    const endOfLastMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 0);
+    const daysBack = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() - n);
+
+    let from: Date;
+    let to: Date;
+
+    switch (datePart) {
+        case "THIS_WEEK": {
+            from = startOfWeek(now);
+            to = endOfWeek(now);
+            break;
+        }
+        case "LAST_WEEK": {
+            const lastWeekAnchor = new Date(now);
+            lastWeekAnchor.setDate(now.getDate() - 7);
+            from = startOfWeek(lastWeekAnchor);
+            to = endOfWeek(lastWeekAnchor);
+            break;
+        }
+        case "THIS_MONTH":
+        case "MONTH": { // kept for backward compatibility (calendar month)
+            from = startOfMonth(now);
+            to = endOfMonth(now);
+            break;
+        }
+        case "LAST_MONTH": {
+            from = startOfLastMonth(now);
+            to = endOfLastMonth(now);
+            break;
+        }
+        case "MONTH_TO_DATE": {
+            from = daysBack(now, 30);
+            to = now;
+            break;
+        }
+        case "YEAR": {
+            from = new Date(now.getFullYear(), 0, 1);
+            to = new Date(now.getFullYear(), 11, 31);
+            break;
+        }
+        case "ONE_WEEK": { // last 7 days, including today (rolling window)
+            to = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            from = new Date(to);
+            from.setDate(to.getDate() - 6);
+            break;
+        }
+        default: {
+            // Default to today only
+            from = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            to = new Date(from);
+        }
+    }
+
+    return { from: fmt(from), to: fmt(to) };
 };
+
+type WinTx = import("../lib/appModels").TransactionData;
+
+export function groupWinsByOperator(txs: WinTx[]) {
+    const map = new Map<string, { amount: number; count: number }>();
+    txs.forEach(t => {
+        const key = t.stakeRegistration?.operator?.name || "Unknown";
+        const old = map.get(key) || { amount: 0, count: 0 };
+        old.amount += t.amountWon || 0;
+        old.count += 1;
+        map.set(key, old);
+    });
+    return Array.from(map.entries()).map(([label, v]) => ({ label, ...v }));
+}

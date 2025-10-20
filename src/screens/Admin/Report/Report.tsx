@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {useEffect, useMemo, useState} from "react";
 import {
   Download,
   Filter,
@@ -8,16 +8,38 @@ import {
   Users,
   Activity,
   GamepadIcon,
-  BarChart3,
-  PieChart,
-  LineChart,
-  Eye,
-  MoreHorizontal
 } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../components/ui/select";
 import { Sidebar } from "../../../components/Sidebar";
 import {Header} from "../../../components/Header";
+import {
+    OperatorSummary,
+    PerformanceDistributionData,
+    TransactionData,
+    TrendSeriesData
+} from "../../../lib/appModels.ts";
+import {
+    fetchDashboardMetrics,
+    fetchPerformanceDistribution,
+    fetchTrendSeries,
+    fetchWinningTransactions
+} from "../../../lib/api.ts";
+import {
+    buildQueryString,
+    formatCompactNumber,
+    formatCurrencyCompact,
+    getDateParts
+} from "../../../lib/utils.ts";
+import {useDataLoader} from "../../../hooks/useDataLoader.ts";
+import {DataLoaderBoundary} from "../../../components/common/DataLoaderBoundary.tsx";
+import {toPaginationMeta} from "../../../lib/pagination.ts";
+import {Pagination} from "../../../components/common/Pagination.tsx";
+import {convertToCSV, convertToPDF} from "../../../components/reports/StakeReports.tsx";
+import {downloadFile, downloadPDF} from "../../../components/download/Download.ts";
+import {SimplePieChart} from "../../../components/charts/SimplePieChart.tsx";
+import {ChartCard} from "../../../components/charts/ChartCard.tsx";
+import {SimpleLineChart} from "../../../components/charts/SimpleLineChart.tsx";
 
 const reportStats = [
   {
@@ -48,137 +70,139 @@ const reportStats = [
     iconColor: "text-purple-600"
   },
   {
-    title: "Total Stake Winnings",
+    title: "Total Winnings",
     value: "23,567",
     change: "-2.1%",
-    trend: "down",
+    trend: "up",
     icon: GamepadIcon,
     bgColor: "bg-orange-50",
     iconColor: "text-orange-600"
   },
 ];
 
-const reportsData = [
-  {
-    id: "RPT001",
-    reportName: "Monthly Revenue Report",
-    operator: "Golden Gaming Ltd",
-    dateGenerated: "2024-01-15",
-    period: "December 2024",
-    totalRevenue: "₦125,430",
-    totalBets: "12,456",
-    activeUsers: "2,345",
-    status: "Completed",
-    fileSize: "2.4 MB"
-  },
-  {
-    id: "RPT002",
-    reportName: "Quarterly Performance",
-    operator: "Lucky Strike Entertainment",
-    dateGenerated: "2024-01-10",
-    period: "Q4 2024",
-    totalRevenue: "₦89,250",
-    totalBets: "8,765",
-    activeUsers: "1,876",
-    status: "Completed",
-    fileSize: "3.1 MB"
-  },
-  {
-    id: "RPT003",
-    reportName: "Weekly Activity Summary",
-    operator: "Diamond Gaming Corp",
-    dateGenerated: "2024-01-08",
-    period: "Week 1, Jan 2024",
-    totalRevenue: "₦28,940",
-    totalBets: "3,432",
-    activeUsers: "1,210",
-    status: "Processing",
-    fileSize: "1.8 MB"
-  },
-  {
-    id: "RPT004",
-    reportName: "Annual Compliance Report",
-    operator: "Royal Casino Group",
-    dateGenerated: "2024-01-05",
-    period: "2024",
-    totalRevenue: "₦456,780",
-    totalBets: "45,678",
-    activeUsers: "5,432",
-    status: "Completed",
-    fileSize: "5.2 MB"
-  },
-  {
-    id: "RPT005",
-    reportName: "Game Performance Analysis",
-    operator: "Ace Gaming Solutions",
-    dateGenerated: "2024-01-03",
-    period: "December 2024",
-    totalRevenue: "₦67,890",
-    totalBets: "6,543",
-    activeUsers: "987",
-    status: "Failed",
-    fileSize: "2.9 MB"
-  },
-  {
-    id: "RPT006",
-    reportName: "User Engagement Report",
-    operator: "Platinum Games Hub",
-    dateGenerated: "2024-01-01",
-    period: "Q4 2024",
-    totalRevenue: "₦156,890",
-    totalBets: "15,432",
-    activeUsers: "3,210",
-    status: "Completed",
-    fileSize: "4.1 MB"
-  }
-];
+const useReportStats = (): OperatorSummary | undefined => {
+    const [summary, setSummary] = useState<OperatorSummary>();
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "Completed":
-      return "bg-green-100 text-green-800";
-    case "Processing":
-      return "bg-yellow-100 text-yellow-800";
-    case "Failed":
-      return "bg-red-100 text-red-800";
-    default:
-      return "bg-gray-100 text-gray-800";
-  }
-};
+    useEffect(() => {
+        const getSummary = async () => {
+            try {
+                const response = await fetchDashboardMetrics();
+                const data = await response?.data;
+                if(data) setSummary(data?.data);
+            } catch (error) {
+                console.error('Error fetching dashboard summary:', error);
+            }
+        };
+        getSummary();
+    }, []);
 
-const getStatusIcon = (status: string) => {
-  switch (status) {
-    case "Completed":
-      return "✓";
-    case "Processing":
-      return "⏳";
-    case "Failed":
-      return "✗";
-    default:
-      return "•";
-  }
-};
+    return summary;
+}
+
+function useTransactionForReport(datePart: string, page: number, size: number) : { data: any, loading: boolean, error: any, reload: any } {
+    type OperatorsPayload = {
+        page: number; size: number; totalPages: number; total: number; previous: number; next: number; data: TransactionData[]
+    };
+
+    const { from, to } = getDateParts(datePart);
+
+    const params = useMemo(() =>
+        ({ page, size, status: '', from, to, sort: 'createdOn-desc' }), [page, size, '', from, to, 'createdOn-desc']);
+
+    return useDataLoader<OperatorsPayload, typeof params>(
+        async (p, ) => {
+            const qs = buildQueryString({ page: p.page, size: p.size,
+                status: p.status === 'all' ? undefined : p.status, sort: p.sort,
+                startDate: p.from.concat('T00:00:00Z'), endDate: p.to.concat('T23:59:59Z') });
+            const resp = await fetchWinningTransactions(qs);
+            const payload = resp?.data?.data as OperatorsPayload | undefined;
+            if (!payload) throw new Error('Malformed response from server');
+            return payload;
+        },
+        { params, preservePreviousData: true }
+    );
+}
+
+function useTrendSeriesReport(datePart: string, page: number, size: number) : { data: any, loading: boolean, error: any, reload: any } {
+    type TrendsPayload = {
+        page: number; size: number; totalPages: number; total: number; previous: number; next: number; data: TrendSeriesData[]
+    };
+
+    const { from, to } = getDateParts(datePart);
+
+    const params = useMemo(() =>
+        ({ page, size, status: '', from, to, limit: size, sort: 'createdOn-desc' }), [page, size, '', from, to, size, 'createdOn-desc']);
+
+    return useDataLoader<TrendsPayload, typeof params>(
+        async (p, ) => {
+            const qs = buildQueryString({ page: p.page, size: p.size, limit: p.size, sort: p.sort,
+                from: p.from.concat('T00:00:00Z'), to: p.to.concat('T23:59:59Z') });
+            const resp = await fetchTrendSeries(qs);
+            const payload = resp?.data as TrendsPayload | undefined;
+            if (!payload) throw new Error('Malformed response from server');
+            return payload;
+        },
+        { params, preservePreviousData: true }
+    );
+}
+
+function useDistributionReport(datePart: string, page: number, size: number) : { data: any, loading: boolean, error: any, reload: any } {
+    type PerformanceDistributionPayload = {
+        page: number; size: number; totalPages: number; total: number; previous: number; next: number; data: PerformanceDistributionData[]
+    };
+
+    const { from, to } = getDateParts(datePart);
+
+    const params = useMemo(() =>
+        ({ page, size, status: '', from, to, limit: size, sort: 'createdOn-desc' }), [page, size, '', from, to, size, 'createdOn-desc']);
+
+    return useDataLoader<PerformanceDistributionPayload, typeof params>(
+        async (p, ) => {
+            const qs = buildQueryString({ page: p.page, size: p.size, limit: p.size, sort: p.sort,
+                from: p.from.concat('T00:00:00Z'), to: p.to.concat('T23:59:59Z') });
+            const resp = await fetchPerformanceDistribution(qs);
+            const payload = resp?.data as PerformanceDistributionPayload | undefined;
+            if (!payload) throw new Error('Malformed response from server');
+            return payload;
+        },
+        { params, preservePreviousData: true }
+    );
+}
 
 export const Report = (): JSX.Element => {
-  const [dateRange, setDateRange] = useState("last-30-days");
-  const [operatorFilter, setOperatorFilter] = useState("all-operators");
-  // const [reportType, setReportType] = useState("all-reports");
-  const [statusFilter, setStatusFilter] = useState("all-status");
-  const [searchTerm, ] = useState("");
+  const reportSummary = useReportStats();
+  const [dateRange, setDateRange] = useState("THIS_WEEK");
+
+  // Server-side pagination state
+  const [page, setPage] = useState(0);
+  const [size, setSize] = useState(10);
+  const { data, loading, error, reload } = useTransactionForReport(dateRange, page, size);
+  const { data: trendSeries, } = useTrendSeriesReport("MONTH_TO_DATE", page, 6);
+  const { data: performance, } = useDistributionReport("MONTH_TO_DATE", page, 6);
+
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  const filteredReports = reportsData.filter(report => {
-    const matchesSearch = report.reportName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         report.operator.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesOperator = operatorFilter === "all-operators" || 
-                           report.operator.toLowerCase().includes(operatorFilter.toLowerCase());
-    
-    const matchesStatus = statusFilter === "all-status" || 
-                         report.status.toLowerCase() === statusFilter.toLowerCase();
-    
-    return matchesSearch && matchesOperator && matchesStatus;
-  });
+    reportStats[0].value = formatCurrencyCompact(reportSummary?.totalWinningAmount || 0, 'NGN', { locale: 'en-NG' });
+    reportStats[1].value = formatCompactNumber(reportSummary?.totalWinnings || 0);
+    reportStats[2].value = formatCompactNumber(reportSummary?.totalOperators || 0);
+    reportStats[3].value = formatCompactNumber(reportSummary?.totalStakes || 0);
+
+  const transactions: TransactionData[] = data?.data ?? [];
+  const meta = data ? toPaginationMeta(data as any) : { page, size, totalPages: 0, total: 0 };
+  const trendData: TrendSeriesData[] = trendSeries?.data ?? [];
+  const distributionData: PerformanceDistributionData[] = performance?.data ?? [];
+
+    const handleExportCSV = () => {
+        const csvContent = convertToCSV(transactions);
+        const filename = `stakes-report-${new Date().toISOString().split('T')[0]}.csv`;
+        downloadFile(csvContent, filename, 'text/csv;charset=utf-8;');
+    };
+
+    const handleExportPDF = () => {
+        const pdfContent = convertToPDF(transactions);
+        const filename = `stakes-report-${new Date().toISOString().split('T')[0]}.pdf`;
+        downloadPDF(pdfContent, filename);
+    };
 
   return (
     <div className="flex min-h-screen bg-gray-5">
@@ -258,207 +282,223 @@ export const Report = (): JSX.Element => {
                     <SelectValue placeholder="Date Range" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="last-7-days">Last 7 days</SelectItem>
-                    <SelectItem value="last-30-days">Last 30 days</SelectItem>
-                    <SelectItem value="last-90-days">Last 90 days</SelectItem>
-                    <SelectItem value="last-year">Last year</SelectItem>
+                    <SelectItem value="THIS_WEEK">This Week</SelectItem>
+                    <SelectItem value="LAST_WEEK">Last Weeks</SelectItem>
+                    <SelectItem value="ONE_WEEK">Last 7 days</SelectItem>
+                    <SelectItem value="THIS_MONTH">This Month</SelectItem>
+                    <SelectItem value="LAST_MONTH">Last Month</SelectItem>
+                    <SelectItem value="MONTH_TO_DATE">Last 30 days</SelectItem>
                     <SelectItem value="custom">Custom range</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={operatorFilter} onValueChange={setOperatorFilter}>
-                  <SelectTrigger className="w-48 h-10 bg-gray-5 border-gray-30 rounded-lg">
-                    <SelectValue placeholder="All Operators" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all-operators">All Operators</SelectItem>
-                    <SelectItem value="golden-gaming">Golden Gaming Ltd</SelectItem>
-                    <SelectItem value="lucky-strike">Lucky Strike Entertainment</SelectItem>
-                    <SelectItem value="diamond-gaming">Diamond Gaming Corp</SelectItem>
-                    <SelectItem value="royal-casino">Royal Casino Group</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-48 h-10 bg-gray-5 border-gray-30 rounded-lg">
-                    <SelectValue placeholder="All Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all-status">All Status</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="processing">Processing</SelectItem>
-                    <SelectItem value="failed">Failed</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="flex items-center gap-2">
-                <Button variant="outline" className="h-10">
-                  <Download className="w-4 h-4 mr-2" />
-                  Export All
-                </Button>
+                  <Button className="bg-primary-500 hover:bg-primary-600 text-white h-12 px-6 rounded-full"
+                          onClick={handleExportCSV}
+                          type="button">
+                      <Download className="w-4 h-4 mr-2" />
+                      Export CSV
+                  </Button>
+                  <Button variant="outline" className="h-10"
+                          onClick={handleExportPDF}
+                          type="button">
+                      <Download className="w-4 h-4 mr-2" />
+                      Export PDF
+                  </Button>
               </div>
             </div>
           </div>
 
           {/* Reports Table */}
-          <div className="bg-white rounded-xl border border-gray-20">
-            <div className="p-6 border-b border-gray-20">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-gray-80">All Reports</h3>
-                <div className="text-sm text-gray-60">
-                  Showing {filteredReports.length} of {reportsData.length} reports
+          <DataLoaderBoundary
+                loading={loading}
+                error={error}
+                isEmpty={!loading && !error && transactions.length === 0}
+                emptyTitle="No operators found"
+                emptySubtitle="Try changing filters or check back later."
+                onRetry={reload}
+          >
+              <div className="bg-white rounded-xl border border-gray-20">
+                <div className="p-6 border-b border-gray-20">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold text-gray-80">Reports</h3>
+                    <div className="text-sm text-gray-60">
+                      {loading ? 'Loading…' : `Showing ${transactions.length} of ${data?.total ?? 0} reports`}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-            
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-5">
-                  <tr>
-                    <th className="text-left p-4 text-sm font-semibold text-gray-60">
-                      Report Name
-                    </th>
-                    <th className="text-left p-4 text-sm font-semibold text-gray-60">
-                      Operator
-                    </th>
-                    <th className="text-left p-4 text-sm font-semibold text-gray-60">
-                      Period
-                    </th>
-                    <th className="text-left p-4 text-sm font-semibold text-gray-60">
-                      Revenue
-                    </th>
-                    <th className="text-left p-4 text-sm font-semibold text-gray-60">
-                      Total Bets
-                    </th>
-                    <th className="text-left p-4 text-sm font-semibold text-gray-60">
-                      Active Users
-                    </th>
-                    <th className="text-left p-4 text-sm font-semibold text-gray-60">
-                      Status
-                    </th>
-                    <th className="text-left p-4 text-sm font-semibold text-gray-60">
-                      Generated
-                    </th>
-                    <th className="text-left p-4 text-sm font-semibold text-gray-60">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredReports.map((report, index) => (
-                    <tr key={index} className="border-b border-gray-20 hover:bg-gray-5 transition-colors">
-                      <td className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-primary-500 rounded-lg flex items-center justify-center">
-                            <BarChart3 className="w-5 h-5 text-white" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-gray-80 text-sm">
-                              {report.reportName}
-                            </p>
-                            <p className="text-xs text-gray-60">
-                              {report.id} • {report.fileSize}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-4 text-sm text-gray-80">
-                        {report.operator}
-                      </td>
-                      <td className="p-4 text-sm text-gray-60">
-                        {report.period}
-                      </td>
-                      <td className="p-4 text-sm font-semibold text-gray-80">
-                        {report.totalRevenue}
-                      </td>
-                      <td className="p-4 text-sm text-gray-60">
-                        {report.totalBets}
-                      </td>
-                      <td className="p-4 text-sm text-gray-60">
-                        {report.activeUsers}
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm">
-                            {getStatusIcon(report.status)}
-                          </span>
-                          <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(report.status)}`}>
-                            {report.status}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="p-4 text-sm text-gray-60">
-                        {report.dateGenerated}
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <Eye className="w-4 h-4 text-gray-60" />
-                          </Button>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <Download className="w-4 h-4 text-gray-60" />
-                          </Button>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="w-4 h-4 text-gray-60" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
 
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-5">
+                      <tr>
+                        <th className="text-left p-4 text-sm font-semibold text-gray-60">
+                          Stake #
+                        </th>
+                        <th className="text-left p-4 text-sm font-semibold text-gray-60">
+                          Operator
+                        </th>
+                        <th className="text-left p-4 text-sm font-semibold text-gray-60">
+                          Customer
+                        </th>
+                        <th className="text-left p-4 text-sm font-semibold text-gray-60">
+                          Game Played
+                        </th>
+                        <th className="text-left p-4 text-sm font-semibold text-gray-60">
+                          Stake/Bet
+                        </th>
+                        <th className="text-left p-4 text-sm font-semibold text-gray-60">
+                          Won
+                        </th>
+                        <th className="text-left p-4 text-sm font-semibold text-gray-60">
+                          LGA
+                        </th>
+                        <th className="text-left p-4 text-sm font-semibold text-gray-60">
+                          Date
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {transactions.map((report, index) => (
+                        <tr key={index} className="border-b border-gray-20 hover:bg-gray-5 transition-colors">
+                          <td className="p-4 text-sm text-gray-80">
+                              {report.referenceNumber}
+                          </td>
+                          <td className="p-4 text-sm text-gray-80">
+                            {report.stakeRegistration?.operator?.name}
+                          </td>
+                          <td className="p-4 text-sm text-gray-60">
+                            {report.stakeRegistration?.customer?.name}
+                          </td>
+                          <td className="p-4 text-sm font-semibold text-gray-80">
+                            {report.stakeRegistration?.customer?.gamePlayed}
+                          </td>
+                          <td className="p-4 text-sm text-gray-60">
+                            {report.stakeRegistration?.customer?.amount}
+                          </td>
+                          <td className="p-4 text-sm text-gray-60">
+                            {report.amountWon}
+                          </td>
+                          <td className="p-4 text-sm text-gray-60">
+                              {report.stakeRegistration?.location?.lgaCode}
+                          </td>
+                          <td className="p-4 text-sm text-gray-60">
+                            {new Date(report.createdOn * 1000).toLocaleDateString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                  {/* Pagination */}
+                  <Pagination
+                      meta={{
+                          page: meta.page,
+                          size: meta.size,
+                          totalPages: meta.totalPages,
+                          total: meta.total,
+                      }}
+                      onPageChange={(p) => setPage(p)}
+                      onPageSizeChange={(s) => { setPage(0); setSize(s); }}
+                  />
+
+              </div>
+          </DataLoaderBoundary>
           {/* Charts Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Revenue Trends Chart */}
-            <div className="bg-white rounded-xl border border-gray-20">
-              <div className="p-6 border-b border-gray-20">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-gray-80">Revenue Trends</h3>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" className="h-8">
-                      <LineChart className="w-4 h-4 mr-2" />
-                      Line
-                    </Button>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="p-6">
-                <div className="h-64 bg-gray-5 rounded-lg flex items-center justify-center">
-                  <div className="text-center">
-                    <LineChart className="w-12 h-12 text-gray-40 mx-auto mb-4" />
-                    <h4 className="text-lg font-semibold text-gray-60 mb-2">Revenue Analytics Chart</h4>
-                    <p className="text-sm text-gray-40 max-w-xs">
-                      Interactive revenue chart showing trends over time
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            {/* Performance Distribution */}
-            <div className="bg-white rounded-xl border border-gray-20">
-              <div className="p-6 border-b border-gray-20">
-                <h3 className="text-lg font-bold text-gray-80">Performance Distribution</h3>
-              </div>
-              
-              <div className="p-6">
-                <div className="h-64 bg-gray-5 rounded-lg flex items-center justify-center">
-                  <div className="text-center">
-                    <PieChart className="w-12 h-12 text-gray-40 mx-auto mb-4" />
-                    <h4 className="text-lg font-semibold text-gray-60 mb-2">Distribution Chart</h4>
-                    <p className="text-sm text-gray-40 max-w-xs">
-                      Performance distribution across operators
-                    </p>
-                  </div>
-                </div>
-              </div>
+            {/* Charts Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Revenue Trends */}
+                <ChartCard
+                    title="Revenue Trends"
+                    actions={[{ key: "line", label: "Line", active: true, onClick: () => {} }]}
+                >
+                    {(() => {
+                        const grouped = trendData;
+                        const labels = grouped.map(g => g.gameName);
+                        const revenue = grouped.map(g => g.amountWon);
+                        const totalBets = grouped.map(g => g.gamesPlayed);
+                        return (
+                            <SimpleLineChart
+                                labels={labels}
+                                series={[
+                                    { name: "Revenue (₦)", color: "#14532D", data: revenue },
+                                    { name: "Total Bets", color: "#7C3AED", data: totalBets },
+                                ]}
+                                yFormatter={(v) => v.toLocaleString("en-NG")}
+                            />
+                        );
+                    })()}
+                </ChartCard>
+
+                {/* Performance Distribution */}
+                <ChartCard title="Performance Distribution">
+                    {(() => {
+                        const colors = ["#166534", "#7C3AED", "#DC2626", "#F59E0B", "#2563EB", "#78350F"];
+                        const grouped = distributionData
+                            .sort((a, b) => b.count - a.count)
+                            .slice(0, 6);
+                        return (
+                            <SimplePieChart
+                                data={grouped.map((g, i) => ({ label: g.gameName, value: g.percent, color: colors[i % colors.length] }))}
+                                size={260}
+                                hoverScale={1.25}
+                                innerRadius={80}
+                                showPercentInCenter
+                            />
+                        );
+                    })()}
+                </ChartCard>
             </div>
-          </div>
+          {/*<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">*/}
+          {/*  /!* Revenue Trends Chart *!/*/}
+          {/*  <div className="bg-white rounded-xl border border-gray-20">*/}
+          {/*    <div className="p-6 border-b border-gray-20">*/}
+          {/*      <div className="flex items-center justify-between">*/}
+          {/*        <h3 className="text-lg font-bold text-gray-80">Revenue Trends</h3>*/}
+          {/*        <div className="flex items-center gap-2">*/}
+          {/*          <Button variant="outline" size="sm" className="h-8">*/}
+          {/*            <LineChart className="w-4 h-4 mr-2" />*/}
+          {/*            Line*/}
+          {/*          </Button>*/}
+          {/*        </div>*/}
+          {/*      </div>*/}
+          {/*    </div>*/}
+          {/*    */}
+          {/*    <div className="p-6">*/}
+          {/*      <div className="h-64 bg-gray-5 rounded-lg flex items-center justify-center">*/}
+          {/*        <div className="text-center">*/}
+          {/*          <LineChart className="w-12 h-12 text-gray-40 mx-auto mb-4" />*/}
+          {/*          <h4 className="text-lg font-semibold text-gray-60 mb-2">Revenue Analytics Chart</h4>*/}
+          {/*          <p className="text-sm text-gray-40 max-w-xs">*/}
+          {/*            Interactive revenue chart showing trends over time*/}
+          {/*          </p>*/}
+          {/*        </div>*/}
+          {/*      </div>*/}
+          {/*    </div>*/}
+          {/*  </div>*/}
+
+          {/*  /!* Performance Distribution *!/*/}
+          {/*  <div className="bg-white rounded-xl border border-gray-20">*/}
+          {/*    <div className="p-6 border-b border-gray-20">*/}
+          {/*      <h3 className="text-lg font-bold text-gray-80">Performance Distribution</h3>*/}
+          {/*    </div>*/}
+          {/*    */}
+          {/*    <div className="p-6">*/}
+          {/*      <div className="h-64 bg-gray-5 rounded-lg flex items-center justify-center">*/}
+          {/*        <div className="text-center">*/}
+          {/*          <PieChart className="w-12 h-12 text-gray-40 mx-auto mb-4" />*/}
+          {/*          <h4 className="text-lg font-semibold text-gray-60 mb-2">Distribution Chart</h4>*/}
+          {/*          <p className="text-sm text-gray-40 max-w-xs">*/}
+          {/*            Performance distribution across operators*/}
+          {/*          </p>*/}
+          {/*        </div>*/}
+          {/*      </div>*/}
+          {/*    </div>*/}
+          {/*  </div>*/}
+          {/*</div>*/}
         </div>
       </div>
     </div>
