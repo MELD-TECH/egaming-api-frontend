@@ -61,7 +61,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <div className="relative hidden md:block">
+                    {/* <div className="relative hidden md:block">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-40 w-4 h-4" />
                         <Input
                             placeholder="Search settings..."
@@ -74,7 +74,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <Button variant="ghost" size="sm" className="relative">
                         <Bell className="w-5 h-5 text-gray-60" />
                         <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-                    </Button>
+                    </Button> */}
 
                     <Button variant="ghost" size="sm" className="flex items-center gap-2">
                         <div className={`w-8 h-8 ${bgClass} rounded-full flex items-center justify-center`}>

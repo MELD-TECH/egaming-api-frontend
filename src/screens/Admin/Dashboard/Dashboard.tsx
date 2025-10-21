@@ -352,6 +352,7 @@ export const Dashboard = (): JSX.Element => {
                     <Button
                       variant="outline"
                       className="w-full justify-start h-12"
+                      onClick={() => navigate('/admin/reports')}
                     >
                       <DollarSign className="w-5 h-5 mr-3" />
                       View Transactions
@@ -361,7 +362,7 @@ export const Dashboard = (): JSX.Element => {
               </div>
             </DataLoaderBoundary>
 
-          {/* Recent Transactions */}
+          {/* Recent Winnings */}
           <DataLoaderBoundary
                 loading={trxLoading}
                 error={trxError}
@@ -374,9 +375,12 @@ export const Dashboard = (): JSX.Element => {
             <div className="p-6 border-b border-gray-20">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold text-gray-80">
-                  Recent Transactions
+                  Recent Winnings
                 </h3>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" 
+                size="sm" 
+                onClick={() => navigate('/admin/reports')}
+                >
                   View All
                 </Button>
               </div>
@@ -451,7 +455,7 @@ export const Dashboard = (): JSX.Element => {
                 {/* Revenue Trends */}
                 <ChartCard
                     title="Revenue Trends"
-                    actions={[{ key: "line", label: "Line", active: true, onClick: () => {} }]}
+                    /* actions={[{ key: "line", label: "Line", active: true, onClick: () => {} }]} */
                 >
                     {(() => {
                         const grouped = trendSeriesData;

@@ -227,10 +227,10 @@ export const Report = (): JSX.Element => {
               </p>
             </div>
             
-            <Button className="bg-primary-500 hover:bg-primary-600 text-white h-12 px-6 rounded-full">
+            {/* <Button className="bg-primary-500 hover:bg-primary-600 text-white h-12 px-6 rounded-full">
               <Download className="w-4 h-4 mr-2" />
               Generate New Report
-            </Button>
+            </Button> */}
           </div>
 
           {/* Stats Overview */}
@@ -413,7 +413,7 @@ export const Report = (): JSX.Element => {
                 {/* Revenue Trends */}
                 <ChartCard
                     title="Revenue Trends"
-                    actions={[{ key: "line", label: "Line", active: true, onClick: () => {} }]}
+                    /* actions={[{ key: "line", label: "Line", active: true, onClick: () => {} }]} */
                 >
                     {(() => {
                         const grouped = trendData;
