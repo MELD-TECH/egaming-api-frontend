@@ -537,7 +537,7 @@ export const OperatorDetails = (): JSX.Element => {
                           { name: "Business Registration Certificate", status: "Verified", date: "2024-01-15" },
                           { name: "Gaming License", status: "Verified", date: "2024-01-20" },
                           { name: "Tax Clearance Certificate", status: "Pending", date: "2024-03-01" },
-                          { name: "Compliance Report Q1 2024", status: "Verified", date: "2024-03-31" }
+                          { name: "Compliance ApiUsage Q1 2024", status: "Verified", date: "2024-03-31" }
                         ].map((doc, index) => (
                           <div key={index} className="flex items-center justify-between p-4 bg-gray-5 rounded-lg">
                             <div className="flex items-center gap-3">
@@ -578,7 +578,7 @@ export const OperatorDetails = (): JSX.Element => {
               {/*    </Button>*/}
               {/*    <Button variant="outline" className="w-full justify-start h-11">*/}
               {/*      <FileText className="w-5 h-5 mr-3" />*/}
-              {/*      Generate Report*/}
+              {/*      Generate ApiUsage*/}
               {/*    </Button>*/}
               {/*    <Button variant="outline" className="w-full justify-start h-11">*/}
               {/*      <Users className="w-5 h-5 mr-3" />*/}

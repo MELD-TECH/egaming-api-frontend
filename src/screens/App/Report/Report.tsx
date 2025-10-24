@@ -14,10 +14,10 @@ import {
   Eye,
   MoreHorizontal
 } from "lucide-react";
-import { Button } from "../../components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
-import { Sidebar } from "../../components/Sidebar";
-import {Header} from "../../components/Header";
+import { Button } from "../../../components/ui/button.tsx";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../components/ui/select.tsx";
+import { Sidebar } from "../../../components/Sidebar";
+import {Header} from "../../../components/Header";
 
 const reportStats = [
   {
@@ -61,7 +61,7 @@ const reportStats = [
 const reportsData = [
   {
     id: "RPT001",
-    reportName: "Monthly Revenue Report",
+    reportName: "Monthly Revenue ApiUsage",
     operator: "Golden Gaming Ltd",
     dateGenerated: "2024-01-15",
     period: "December 2024",
@@ -97,7 +97,7 @@ const reportsData = [
   },
   {
     id: "RPT004",
-    reportName: "Annual Compliance Report",
+    reportName: "Annual Compliance ApiUsage",
     operator: "Royal Casino Group",
     dateGenerated: "2024-01-05",
     period: "2024",
@@ -121,7 +121,7 @@ const reportsData = [
   },
   {
     id: "RPT006",
-    reportName: "User Engagement Report",
+    reportName: "User Engagement ApiUsage",
     operator: "Platinum Games Hub",
     dateGenerated: "2024-01-01",
     period: "Q4 2024",

@@ -6,7 +6,7 @@ import { ResetPassword } from './screens/Public/ResetPassword/ResetPassword';
 import { Dashboard } from './screens/Admin/Dashboard/Dashboard';
 import { Dashboard as AppDashboard } from './screens/App/Dashboard/Dashboard';
 import { Report } from './screens/Admin/Report/Report';
-import { Report as AppReport } from './screens/Report/Report';
+import { Report as AppReport } from './screens/App/Report/Report';
 import { Operator } from './screens/Admin/Operator/Operator';
 import { OperatorDetails } from './screens/Admin/OperatorDetails/OperatorDetails';
 import { Team } from './screens/Team';
@@ -26,6 +26,7 @@ import {Adjudicator} from "./screens/Adjudicator";
 import {RequirePermission} from "./components/auth/RequirePermission.tsx";
 import {RolePromoter} from "./screens/App/RolePromoter";
 import {AuthEventsGuard} from "./components/auth/AuthEventsGuard.tsx";
+import {ApiUsage} from "./screens/Admin/ApiUsage/ApiUsage.tsx";
 
 export const App: React.FC = () => {
     return (
@@ -56,7 +57,7 @@ export const App: React.FC = () => {
                         <Report />
                     </RequirePermission>
                 } />
-                <Route path="/reports" element={<AppReport />} />
+                <Route path="/app/reports" element={<AppReport />} />
                 <Route path="/operators" element={
                     <RequirePermission anyOf={["CAN_VIEW_OPERATORS"]}>
                         <Operator />
@@ -66,6 +67,11 @@ export const App: React.FC = () => {
                     <RequirePermission anyOf={["CAN_VIEW_OPERATOR"]}>
                         <OperatorDetails />
                     </RequirePermission>
+                } />
+                <Route path="/admin/api/dashboard" element={
+                      <RequirePermission anyOf={["CAN_VIEW_DASHBOARD"]}>
+                          <ApiUsage />
+                      </RequirePermission>
                 } />
                 <Route path="/team" element={<Team />} />
                 <Route path="/lga" element={<LGA />} />

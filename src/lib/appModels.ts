@@ -134,3 +134,14 @@ export interface PerformanceDistributionData {
     count: number;
     percent: number;
 }
+
+export interface ApiKeyUsageSummary {
+    owner: number;
+    total: number;
+    clientId: string;
+}
+
+export interface ApiKeyUsageData {
+    count: string;
+    timestamp: number;
+}

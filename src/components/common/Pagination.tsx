@@ -32,7 +32,7 @@ export const Pagination: React.FC<PaginationProps> = ({
     const from = total === 0 ? 0 : page * size + 1;
     const to = Math.min(total, (page + 1) * size);
 
-    // Render up to 5 pages around current (1-based UI, 0-based wire)
+    // Render up to 5 pages around the current (1-based UI, 0-based wire)
     const pages = useMemo(() => {
         const maxButtons = 5;
         const start = Math.max(0, Math.min(page - 2, Math.max(0, totalPages - maxButtons)));

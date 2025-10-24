@@ -26,7 +26,7 @@ import {
     OtpVerificationResponse, UserAccountResponse, UserAccountRequest, OperatorVerificationRequest,
     OperatorVerificationResponse, LgaResponse, CompanyRequest, CompanyResponse, SignerConfig, ProfileUpdateRequest,
     UploadResponse, UploadRequest, GenericResponse, OperatorMetricsResponse, TrendSeriesResponse,
-    PerformanceDistributionResponse
+    PerformanceDistributionResponse, ApiKeyUsageSummaryResponse, ApiKeyUsageResponse
 } from './models';
 import {getBase64Image} from "./uploaders.ts";
 import {OperatorData, TransactionData} from "./appModels.ts";
@@ -75,6 +75,8 @@ const DASHBOARD_METRICS_URL =  `/platform/api/v1/metrics/summary`;
 const WINNING_TRANSACTIONS_URL =  `/platform/api/v1/stakes/winnings`;
 const TREND_SERIES_URL =  `/platform/api/v1/metrics/analytics/amount-won-vs-games`;
 const DISTRIBUTION_URL =  `/platform/api/v1/metrics/analytics/games-distribution`;
+const API_KEY_USAGE_SUMMARY_URL =  `/platform/api/v1/rate-limiter/admin/usage-summary`;
+const API_KEY_USAGE_URL =  `/platform/api/v1/rate-limiter/usage?minutesBack=`;
 
 
 export { LOGIN_URL };
@@ -198,4 +200,13 @@ export async function fetchTrendSeries(queryString: string) {
 
 export async function fetchPerformanceDistribution(queryString: string) {
     return httpGet<PerformanceDistributionResponse>(`${DISTRIBUTION_URL}?${queryString}`, { base: 'api' });
+}
+
+export async function fetchApiKeyUsageSummary() {
+    return httpGet<ApiKeyUsageSummaryResponse>(API_KEY_USAGE_SUMMARY_URL, { base: 'api' });
+}
+
+export async function fetchApiKeyUsage(operatorPublicId: string, minutesBack: number) {
+    const headers = { 'x-public-id': operatorPublicId }
+    return httpGet<ApiKeyUsageResponse>(`${API_KEY_USAGE_URL}${minutesBack}`, { base: 'api', headers });
 }

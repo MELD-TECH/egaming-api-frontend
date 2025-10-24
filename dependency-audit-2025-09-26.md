@@ -1,4 +1,4 @@
-# Dependency Audit Report — 2025-09-26
+# Dependency Audit ApiUsage — 2025-09-26
 
 Repository: egaming-api-frontend
 Working directory: /Users/josleke/Downloads/ThamaniInvest/Sabi/lab/egaming-api-frontend

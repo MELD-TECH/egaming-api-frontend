@@ -1,7 +1,14 @@
 // Centralized request/response payload models for API calls
 
 // Auth
-import {Lga, OperatorSummary, PerformanceDistributionData, TrendSeriesData} from "./appModels.ts";
+import {
+    ApiKeyUsageData,
+    ApiKeyUsageSummary,
+    Lga,
+    OperatorSummary,
+    PerformanceDistributionData,
+    TrendSeriesData
+} from "./appModels.ts";
 
 export interface SignerConfig {
     secret: string;               // client secret or per-session key
@@ -249,4 +256,12 @@ export interface TrendSeriesResponse {
 
 export interface PerformanceDistributionResponse {
     data: PerformanceDistributionData[];
+}
+
+export interface ApiKeyUsageSummaryResponse {
+    data: ApiKeyUsageSummary[];
+}
+
+export interface ApiKeyUsageResponse {
+    data: ApiKeyUsageData[];
 }

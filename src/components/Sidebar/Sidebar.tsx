@@ -49,7 +49,7 @@ const navigationItems = [
   {
     title: 'Reports',
     icon: FileText,
-    path: '/reports',
+    path: '/app/reports',
     id: 'app-reports',
     access: false
   },
@@ -59,6 +59,13 @@ const navigationItems = [
     path: '/operators',
     id: 'operators',
     access: false
+  },
+  {
+        title: 'Api Usage',
+        icon: LayoutDashboard,
+        path: '/admin/api/dashboard',
+        id: 'api-dashboard',
+        access: false
   },
   // {
   //   title: 'LGA',
@@ -114,7 +121,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     useEffect(() => {
         const privileges = [
             ['CAN_VIEW_DASHBOARD'], ['CAN_VIEW_MINI_REPORTS'], ['CAN_VIEW_REPORTS'],
-            ['CAN_VIEW_MINI_REPORTS'], ['CAN_VIEW_APPLICATIONS'], ['CAN_VIEW_SETTINGS']];
+            ['CAN_VIEW_MINI_REPORTS'], ['CAN_VIEW_APPLICATIONS'], ['CAN_VIEW_DASHBOARD'], ['CAN_VIEW_SETTINGS']];
         let index = 0;
         for(const navItem in navigationItems ) {
             if(navigationItems[navItem].id === 'settings') continue;
