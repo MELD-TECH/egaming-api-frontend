@@ -34,8 +34,8 @@ export class ApiError<T = any> extends Error {
 
 export async function buildSignedHeaders(
     publicId: string,
-    username: string,        // e.g. '/v1/users/permissions'
-    role: string,     // e.g. 'page=1'
+    username: string, // e.g. '/v1/users/permissions'
+    role: string,     // e.g. 'USER'
     cfg: SignerConfig
 ) {
     const salt = generateSalt(cfg.saltBytes ?? 16, cfg.saltFormat ?? 'base64') as string;
@@ -144,9 +144,19 @@ function createAxios(baseURL: string): AxiosInstance {
     inst.interceptors.response.use(
         (response: AxiosResponse) => {
             // @ts-ignore
-            if (import.meta.env.DEV) {
-                // eslint-disable-next-line no-console
-                console.debug('[HTTP] ←', response.status, response.config?.url);
+            // if (import.meta.env.DEV) {
+            //     // eslint-disable-next-line no-console
+            //     console.debug('[HTTP] ←', response.status, response.config?.url);
+            // }
+
+            const shouldLogHttpErrors = (
+                // @ts-ignore
+                (import.meta.env.DEV) && (import.meta.env.VITE_LOG_HTTP_ERRORS !== 'off')
+                // @ts-ignore
+            ) || (import.meta.env.VITE_LOG_HTTP_ERRORS === 'on');
+
+            if (shouldLogHttpErrors) {
+                console.error('[HTTP] ×', response.status, response.config?.url, response.data);
             }
             return response;
         },

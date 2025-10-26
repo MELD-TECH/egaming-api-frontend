@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import {FilterRequest} from "./appModels.ts";
+import {FilterReportRequest, FilterRequest} from "./appModels.ts";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -97,7 +97,7 @@ export function getAvatarProps(nameOrEmail?: string | null): {
     return { initials, bgClass, textClass: "text-white" };
 }
 
-export function buildQueryString(filter: FilterRequest) {
+export function buildQueryString(filter: FilterRequest | FilterReportRequest) {
     let queryString = "";
     for (const key in filter) {
         // @ts-ignore

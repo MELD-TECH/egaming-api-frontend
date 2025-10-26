@@ -47,13 +47,11 @@ export interface FilterRequest {
     limit?: number;
 }
 
-export interface ResponseMetadata {
-    page: number;
-    size: number;
-    totalPages: number;
-    total: number;
-    previous: number;
-    next: number;
+export interface FilterReportRequest {
+    metric: string;
+    from?: string;
+    to?: string;
+    operatorId?: string;
 }
 
 export interface OperatorData {
@@ -144,4 +142,42 @@ export interface ApiKeyUsageSummary {
 export interface ApiKeyUsageData {
     count: string;
     timestamp: number;
+}
+
+export interface ApiKeyData {
+    publicId: string;
+    name: string;
+    apiKey: string;
+    role: string;
+    rateLimitConfig: {
+        remainingTokens: number;
+        capacity: number;
+        refillPeriod: string;
+        refillTimeUnit: string;
+    };
+    revoked: boolean;
+    createdOn: number;
+}
+
+export interface ClientApiKey {
+    publicId?: string;
+    name: string;
+    apiKey?: string;
+    role?: string;
+    rateLimitConfig?: {
+        remainingTokens: number;
+        capacity: number;
+        refillPeriod: number;
+        refillTimeUnit: string;
+    }
+}
+
+export interface MonthlyData {
+    monthLabel: string;
+    values: number[];
+}
+
+export interface MonthlyType {
+    name: string;
+    data: MonthlyData[];
 }

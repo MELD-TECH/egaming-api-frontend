@@ -26,7 +26,8 @@ import {
     OtpVerificationResponse, UserAccountResponse, UserAccountRequest, OperatorVerificationRequest,
     OperatorVerificationResponse, LgaResponse, CompanyRequest, CompanyResponse, SignerConfig, ProfileUpdateRequest,
     UploadResponse, UploadRequest, GenericResponse, OperatorMetricsResponse, TrendSeriesResponse,
-    PerformanceDistributionResponse, ApiKeyUsageSummaryResponse, ApiKeyUsageResponse
+    PerformanceDistributionResponse, ApiKeyUsageSummaryResponse, ApiKeyUsageResponse, ApiKeyResponse, ApiKeyRequest,
+    MonthlyDataResponse
 } from './models';
 import {getBase64Image} from "./uploaders.ts";
 import {OperatorData, TransactionData} from "./appModels.ts";
@@ -72,11 +73,14 @@ const OPERATOR_URL =  `/platform/api/v1/operators`;
 const OPERATORS_METRICS_URL =  `/platform/api/v1/metrics/operators`;
 const OPERATOR_METRICS_URL =  `/platform/api/v1/metrics/summary/by-operator/`;
 const DASHBOARD_METRICS_URL =  `/platform/api/v1/metrics/summary`;
+const MONTH_WISE_METRICS_URL =  `/platform/api/v1/metrics/monthly`;
 const WINNING_TRANSACTIONS_URL =  `/platform/api/v1/stakes/winnings`;
 const TREND_SERIES_URL =  `/platform/api/v1/metrics/analytics/amount-won-vs-games`;
 const DISTRIBUTION_URL =  `/platform/api/v1/metrics/analytics/games-distribution`;
 const API_KEY_USAGE_SUMMARY_URL =  `/platform/api/v1/rate-limiter/admin/usage-summary`;
 const API_KEY_USAGE_URL =  `/platform/api/v1/rate-limiter/usage?minutesBack=`;
+const GET_OPERATOR_URL =  `${OPERATOR_URL}/me/token`;
+const API_KEY_CLIENT_URL =  `/platform/api/v1/clients`;
 
 
 export { LOGIN_URL };
@@ -209,4 +213,24 @@ export async function fetchApiKeyUsageSummary() {
 export async function fetchApiKeyUsage(operatorPublicId: string, minutesBack: number) {
     const headers = { 'x-public-id': operatorPublicId }
     return httpGet<ApiKeyUsageResponse>(`${API_KEY_USAGE_URL}${minutesBack}`, { base: 'api', headers });
+}
+
+export async function fetchOperatorByToken() {
+    return httpGet<OperatorData>(GET_OPERATOR_URL, { base: 'api' });
+}
+
+export async function fetchApiKeyClient(publicId: string) {
+    return httpGet<ApiKeyResponse>(`${API_KEY_CLIENT_URL}/${publicId}`, { base: 'api' });
+}
+
+export async function createApiKeyClient(body: ApiKeyRequest) {
+    return httpPost<ApiKeyResponse, ApiKeyRequest>(`${API_KEY_CLIENT_URL}`, body, { base: 'api' });
+}
+
+export async function rotateApiKeyClient(publicId: string | undefined) {
+    return httpPost<ApiKeyResponse>(`${API_KEY_CLIENT_URL}/${publicId}/rotate-key`, {}, { base: 'api' });
+}
+
+export async function monthWiseMetrics(queryString: string) {
+    return httpGet<MonthlyDataResponse>(`${MONTH_WISE_METRICS_URL}?${queryString}`, { base: 'api' });
 }

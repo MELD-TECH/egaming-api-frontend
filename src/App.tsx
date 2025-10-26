@@ -27,6 +27,8 @@ import {RequirePermission} from "./components/auth/RequirePermission.tsx";
 import {RolePromoter} from "./screens/App/RolePromoter";
 import {AuthEventsGuard} from "./components/auth/AuthEventsGuard.tsx";
 import {ApiUsage} from "./screens/Admin/ApiUsage/ApiUsage.tsx";
+import {OrganizationInfo} from "./screens/App/OrganizationInfo/OrganizationInfo.tsx";
+import {ApiKeyManagement} from "./screens/App/ApiKeyManagement/ApiKeyManagement.tsx";
 
 export const App: React.FC = () => {
     return (
@@ -58,6 +60,8 @@ export const App: React.FC = () => {
                     </RequirePermission>
                 } />
                 <Route path="/app/reports" element={<AppReport />} />
+                <Route path="/app/organization" element={<OrganizationInfo />} />
+                <Route path="/app/developer" element={<ApiKeyManagement />} />
                 <Route path="/operators" element={
                     <RequirePermission anyOf={["CAN_VIEW_OPERATORS"]}>
                         <Operator />

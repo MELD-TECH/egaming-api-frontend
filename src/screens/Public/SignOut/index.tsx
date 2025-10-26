@@ -16,7 +16,6 @@ export const SignOut = (): JSX.Element => {
             try {
                 const resp = await logout();
                 const auth = resp?.data;
-                console.log("logout success", auth);
                 if(auth) {
                         clearAuthToken();
                         clearAllAppInfo();

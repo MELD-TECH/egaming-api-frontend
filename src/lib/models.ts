@@ -2,9 +2,10 @@
 
 // Auth
 import {
+    ApiKeyData,
     ApiKeyUsageData,
     ApiKeyUsageSummary,
-    Lga,
+    Lga, MonthlyType,
     OperatorSummary,
     PerformanceDistributionData,
     TrendSeriesData
@@ -264,4 +265,25 @@ export interface ApiKeyUsageSummaryResponse {
 
 export interface ApiKeyUsageResponse {
     data: ApiKeyUsageData[];
+}
+
+export interface ApiKeyResponse {
+    data: ApiKeyData;
+}
+
+export interface ApiKeyRequest {
+    publicId: string;
+    name: string;
+    apiKey: 'default';
+    role: 'OPERATOR_API_USER';
+    rateLimitConfig: {
+        remainingTokens: number | 50;
+        capacity: number | 50;
+        refillPeriod: number | 30;
+        refillTimeUnit: string | 'SECOND';
+    }
+}
+
+export interface MonthlyDataResponse {
+    data: MonthlyType;
 }

@@ -279,11 +279,11 @@ export const Report = (): JSX.Element => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="THIS_WEEK">This Week</SelectItem>
-                    <SelectItem value="LAST_WEEK">Last Weeks</SelectItem>
-                    <SelectItem value="ONE_WEEK">Last 7 days</SelectItem>
+                    <SelectItem value="LAST_WEEK">Last Week</SelectItem>
+                    <SelectItem value="ONE_WEEK">Last 7 Days</SelectItem>
                     <SelectItem value="THIS_MONTH">This Month</SelectItem>
                     <SelectItem value="LAST_MONTH">Last Month</SelectItem>
-                    <SelectItem value="MONTH_TO_DATE">Last 30 days</SelectItem>
+                    <SelectItem value="MONTH_TO_DATE">Last 30 Days</SelectItem>
                     <SelectItem value="custom">Custom range</SelectItem>
                   </SelectContent>
                 </Select>
