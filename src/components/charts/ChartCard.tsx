@@ -17,7 +17,7 @@ type ChartCardProps = {
 
 export function ChartCard({ title, actions = [], className, children }: ChartCardProps) {
     return (
-        <div className={cn("bg-white rounded-xl border border-gray-20", className)}>
+        <div className={cn(`bg-white rounded-xl border border-gray-20`, className)}>
             <div className="p-6 border-b border-gray-20 flex items-center justify-between">
                 <h3 className="text-lg font-bold text-gray-80">{title}</h3>
                 {actions?.length > 0 && (

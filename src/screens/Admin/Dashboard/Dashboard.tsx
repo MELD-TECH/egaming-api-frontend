@@ -59,7 +59,7 @@ const dashboardStats = [
     iconColor: "text-purple-600"
   },
   {
-    title: "Total Stake Transactions",
+    title: "Total Stakes",
     value: "0",
     change: "0.1%",
     trend: "up",
@@ -152,8 +152,6 @@ function useTrendDataReport(datePart: string, page: number, size: number) : { da
 
     const params = useMemo(() =>
         ({ page, size, status: '', from, to, limit: size, sort: 'createdOn-desc' }), [page, size, '', from, to, size, 'createdOn-desc']);
-
-    console.log('params ', params);
 
     return useDataLoader<TrendsPayload, typeof params>(
         async (p, ) => {

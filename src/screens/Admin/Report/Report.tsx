@@ -183,9 +183,9 @@ export const Report = (): JSX.Element => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
     reportStats[0].value = formatCurrencyCompact(reportSummary?.totalWinningAmount || 0, 'NGN', { locale: 'en-NG' });
-    reportStats[1].value = formatCompactNumber(reportSummary?.totalWinnings || 0);
+    reportStats[1].value = formatCompactNumber(reportSummary?.totalStakes || 0);
     reportStats[2].value = formatCompactNumber(reportSummary?.totalOperators || 0);
-    reportStats[3].value = formatCompactNumber(reportSummary?.totalStakes || 0);
+    reportStats[3].value = formatCompactNumber(reportSummary?.totalWinnings || 0);
 
   const transactions: TransactionData[] = data?.data ?? [];
   const meta = data ? toPaginationMeta(data as any) : { page, size, totalPages: 0, total: 0 };
@@ -283,11 +283,11 @@ export const Report = (): JSX.Element => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="THIS_WEEK">This Week</SelectItem>
-                    <SelectItem value="LAST_WEEK">Last Weeks</SelectItem>
-                    <SelectItem value="ONE_WEEK">Last 7 days</SelectItem>
+                    <SelectItem value="LAST_WEEK">Last Week</SelectItem>
+                    <SelectItem value="ONE_WEEK">Last 7 Days</SelectItem>
                     <SelectItem value="THIS_MONTH">This Month</SelectItem>
                     <SelectItem value="LAST_MONTH">Last Month</SelectItem>
-                    <SelectItem value="MONTH_TO_DATE">Last 30 days</SelectItem>
+                    <SelectItem value="MONTH_TO_DATE">Last 30 Days</SelectItem>
                     <SelectItem value="custom">Custom range</SelectItem>
                   </SelectContent>
                 </Select>
@@ -452,53 +452,6 @@ export const Report = (): JSX.Element => {
                     })()}
                 </ChartCard>
             </div>
-          {/*<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">*/}
-          {/*  /!* Revenue Trends Chart *!/*/}
-          {/*  <div className="bg-white rounded-xl border border-gray-20">*/}
-          {/*    <div className="p-6 border-b border-gray-20">*/}
-          {/*      <div className="flex items-center justify-between">*/}
-          {/*        <h3 className="text-lg font-bold text-gray-80">Revenue Trends</h3>*/}
-          {/*        <div className="flex items-center gap-2">*/}
-          {/*          <Button variant="outline" size="sm" className="h-8">*/}
-          {/*            <LineChart className="w-4 h-4 mr-2" />*/}
-          {/*            Line*/}
-          {/*          </Button>*/}
-          {/*        </div>*/}
-          {/*      </div>*/}
-          {/*    </div>*/}
-          {/*    */}
-          {/*    <div className="p-6">*/}
-          {/*      <div className="h-64 bg-gray-5 rounded-lg flex items-center justify-center">*/}
-          {/*        <div className="text-center">*/}
-          {/*          <LineChart className="w-12 h-12 text-gray-40 mx-auto mb-4" />*/}
-          {/*          <h4 className="text-lg font-semibold text-gray-60 mb-2">Revenue Analytics Chart</h4>*/}
-          {/*          <p className="text-sm text-gray-40 max-w-xs">*/}
-          {/*            Interactive revenue chart showing trends over time*/}
-          {/*          </p>*/}
-          {/*        </div>*/}
-          {/*      </div>*/}
-          {/*    </div>*/}
-          {/*  </div>*/}
-
-          {/*  /!* Performance Distribution *!/*/}
-          {/*  <div className="bg-white rounded-xl border border-gray-20">*/}
-          {/*    <div className="p-6 border-b border-gray-20">*/}
-          {/*      <h3 className="text-lg font-bold text-gray-80">Performance Distribution</h3>*/}
-          {/*    </div>*/}
-          {/*    */}
-          {/*    <div className="p-6">*/}
-          {/*      <div className="h-64 bg-gray-5 rounded-lg flex items-center justify-center">*/}
-          {/*        <div className="text-center">*/}
-          {/*          <PieChart className="w-12 h-12 text-gray-40 mx-auto mb-4" />*/}
-          {/*          <h4 className="text-lg font-semibold text-gray-60 mb-2">Distribution Chart</h4>*/}
-          {/*          <p className="text-sm text-gray-40 max-w-xs">*/}
-          {/*            Performance distribution across operators*/}
-          {/*          </p>*/}
-          {/*        </div>*/}
-          {/*      </div>*/}
-          {/*    </div>*/}
-          {/*  </div>*/}
-          {/*</div>*/}
         </div>
       </div>
     </div>

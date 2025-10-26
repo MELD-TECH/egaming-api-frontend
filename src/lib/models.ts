@@ -1,7 +1,15 @@
 // Centralized request/response payload models for API calls
 
 // Auth
-import {Lga, OperatorSummary, PerformanceDistributionData, TrendSeriesData} from "./appModels.ts";
+import {
+    ApiKeyData,
+    ApiKeyUsageData,
+    ApiKeyUsageSummary,
+    Lga, MonthlyType,
+    OperatorSummary,
+    PerformanceDistributionData,
+    TrendSeriesData
+} from "./appModels.ts";
 
 export interface SignerConfig {
     secret: string;               // client secret or per-session key
@@ -249,4 +257,33 @@ export interface TrendSeriesResponse {
 
 export interface PerformanceDistributionResponse {
     data: PerformanceDistributionData[];
+}
+
+export interface ApiKeyUsageSummaryResponse {
+    data: ApiKeyUsageSummary[];
+}
+
+export interface ApiKeyUsageResponse {
+    data: ApiKeyUsageData[];
+}
+
+export interface ApiKeyResponse {
+    data: ApiKeyData;
+}
+
+export interface ApiKeyRequest {
+    publicId: string;
+    name: string;
+    apiKey: 'default';
+    role: 'OPERATOR_API_USER';
+    rateLimitConfig: {
+        remainingTokens: number | 50;
+        capacity: number | 50;
+        refillPeriod: number | 30;
+        refillTimeUnit: string | 'SECOND';
+    }
+}
+
+export interface MonthlyDataResponse {
+    data: MonthlyType;
 }

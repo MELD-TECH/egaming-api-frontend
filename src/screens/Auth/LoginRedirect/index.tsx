@@ -18,7 +18,6 @@ export const LoginRedirect = () => {
             try {
                 const authUrl = await getAuthorizerUrl();
                 const url = authUrl?.data;
-                console.log("authUrl", authUrl);
                 if (url) {
                     // @ts-ignore
                     window.location.replace(url);

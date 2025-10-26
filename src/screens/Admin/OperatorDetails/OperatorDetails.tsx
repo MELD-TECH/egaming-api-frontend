@@ -129,17 +129,20 @@ const getStatusColor = (status: string | undefined) => {
   }
 };
 
-function useOperatorMetrics(operatorId: string | undefined): OperatorSummary | undefined {
+export function useOperatorMetrics(operatorId: string | undefined): OperatorSummary | undefined {
   const [operatorMetrics, setOperatorMetrics] = useState<OperatorSummary>();
 
     useEffect(() => {
+     if (!operatorId) return;
       const getOperatorMetrics = async () => {
-          const response = await fetchOperatorMetric(operatorId);
-          setOperatorMetrics(response?.data?.data);
+          try {
+              const response = await fetchOperatorMetric(operatorId);
+              setOperatorMetrics(response?.data?.data);
+          }
+          catch (_){}
       }
       getOperatorMetrics();
   }, [operatorId]);
-    console.log("Operator Metrics:", operatorMetrics);
     return operatorMetrics;
 }
 
@@ -250,53 +253,6 @@ export const OperatorDetails = (): JSX.Element => {
                       <Download className="w-4 h-4 mr-2" />
                       Export
                     </Button>
-                    {/*<Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>*/}
-                    {/*  <DialogTrigger asChild>*/}
-                    {/*    <Button */}
-                    {/*      variant="outline" */}
-                    {/*      className="h-11 px-6 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"*/}
-                    {/*    >*/}
-                    {/*      <Trash2 className="w-4 h-4 mr-2" />*/}
-                    {/*      Delete*/}
-                    {/*    </Button>*/}
-                    {/*  </DialogTrigger>*/}
-                    {/*  <DialogContent className="sm:max-w-md bg-white">*/}
-                    {/*    <DialogHeader className="text-center pb-4">*/}
-                    {/*      <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">*/}
-                    {/*        <AlertTriangle className="w-6 h-6 text-red-600" />*/}
-                    {/*      </div>*/}
-                    {/*      <DialogTitle className="text-xl font-bold text-gray-80">*/}
-                    {/*        Delete Operator*/}
-                    {/*      </DialogTitle>*/}
-                    {/*      <DialogDescription className="text-gray-60 mt-2">*/}
-                    {/*        Are you sure you want to delete "{formData.companyName}"? This action cannot be undone.*/}
-                    {/*      </DialogDescription>*/}
-                    {/*    </DialogHeader>*/}
-                    {/*    <DialogFooter className="flex flex-col sm:flex-row gap-3 pt-4">*/}
-                    {/*      <Button*/}
-                    {/*        variant="outline"*/}
-                    {/*        onClick={() => setShowDeleteDialog(false)}*/}
-                    {/*        className="flex-1 h-11"*/}
-                    {/*      >*/}
-                    {/*        Cancel*/}
-                    {/*      </Button>*/}
-                    {/*      <Button*/}
-                    {/*        onClick={handleDelete}*/}
-                    {/*        className="flex-1 h-11 bg-red-600 hover:bg-red-700 text-white"*/}
-                    {/*      >*/}
-                    {/*        <Trash2 className="w-4 h-4 mr-2" />*/}
-                    {/*        Delete*/}
-                    {/*      </Button>*/}
-                    {/*    </DialogFooter>*/}
-                    {/*  </DialogContent>*/}
-                    {/*</Dialog>*/}
-                    {/*<Button */}
-                    {/*  onClick={() => setIsEditing(true)}*/}
-                    {/*  className="bg-primary-500 hover:bg-primary-600 text-white h-11 px-6"*/}
-                    {/*>*/}
-                    {/*  <Edit className="w-4 h-4 mr-2" />*/}
-                    {/*  Edit Details*/}
-                    {/*</Button>*/}
                   </>
                 )}
               </div>
@@ -341,9 +297,7 @@ export const OperatorDetails = (): JSX.Element => {
                   <nav className="flex space-x-8 px-6">
                     {[
                       { id: "overview", label: "Overview" },
-                      // { id: "games", label: "Games" },
                       { id: "transactions", label: "Transactions" },
-                      // { id: "documents", label: "Documents" }
                     ].map((tab) => (
                       <button
                         key={tab.id}
@@ -371,13 +325,7 @@ export const OperatorDetails = (): JSX.Element => {
                               <Label className="text-sm font-semibold text-gray-80 mb-2 block">
                                 Company Name
                               </Label>
-                              {isEditing ? (<></>
-                                // <Input
-                                //   value={operatorData?.name}
-                                //   onChange={(e) => handleInputChange("companyName", e.target.value)}
-                                //   className="h-10 bg-gray-5 border-gray-30 rounded-lg"
-                                // />
-                              ) : (
+                              {isEditing ? (<></> ) : (
                                 <p className="text-gray-60">{operatorData?.name}</p>
                               )}
                             </div>
@@ -386,14 +334,7 @@ export const OperatorDetails = (): JSX.Element => {
                               <Label className="text-sm font-semibold text-gray-80 mb-2 block">
                                 Contact Person
                               </Label>
-                              {isEditing ? (
-                                // <Input
-                                //   value={operatorData?.contactPerson}
-                                //   onChange={(e) => handleInputChange("contactPerson", e.target.value)}
-                                //   className="h-10 bg-gray-5 border-gray-30 rounded-lg"
-                                // />
-                                  <></>
-                              ) : (
+                              {isEditing ? ( <></> ) : (
                                 <p className="text-gray-60">{operatorData?.contactPerson}</p>
                               )}
                             </div>
@@ -402,14 +343,7 @@ export const OperatorDetails = (): JSX.Element => {
                               <Label className="text-sm font-semibold text-gray-80 mb-2 block">
                                 Email Address
                               </Label>
-                              {isEditing ? (
-                                // <Input
-                                //   value={operatorData?.email}
-                                //   onChange={(e) => handleInputChange("email", e.target.value)}
-                                //   className="h-10 bg-gray-5 border-gray-30 rounded-lg"
-                                // />
-                                  <></>
-                              ) : (
+                              {isEditing ? ( <></> ) : (
                                 <p className="text-gray-60">{operatorData?.email}</p>
                               )}
                             </div>
@@ -420,14 +354,7 @@ export const OperatorDetails = (): JSX.Element => {
                               <Label className="text-sm font-semibold text-gray-80 mb-2 block">
                                 Phone Number
                               </Label>
-                              {isEditing ? (
-                                // <Input
-                                //   value={operatorData?.phone}
-                                //   onChange={(e) => handleInputChange("phone", e.target.value)}
-                                //   className="h-10 bg-gray-5 border-gray-30 rounded-lg"
-                                // />
-                                  <></>
-                              ) : (
+                              {isEditing ? ( <></>) : (
                                 <p className="text-gray-60">{operatorData?.phone}</p>
                               )}
                             </div>
@@ -436,14 +363,7 @@ export const OperatorDetails = (): JSX.Element => {
                               <Label className="text-sm font-semibold text-gray-80 mb-2 block">
                                 Business Registration
                               </Label>
-                              {isEditing ? (
-                                // <Input
-                                //   value={operatorData?.registrationNumber}
-                                //   onChange={(e) => handleInputChange("businessRegNo", e.target.value)}
-                                //   className="h-10 bg-gray-5 border-gray-30 rounded-lg"
-                                // />
-                                  <></>
-                              ) : (
+                              {isEditing ? ( <></>) : (
                                 <p className="text-gray-60">{operatorData?.registrationNumber}</p>
                               )}
                             </div>
@@ -452,14 +372,7 @@ export const OperatorDetails = (): JSX.Element => {
                               <Label className="text-sm font-semibold text-gray-80 mb-2 block">
                                 Address
                               </Label>
-                              {isEditing ? (
-                                // <Input
-                                //   value={operatorData?.address}
-                                //   onChange={(e) => handleInputChange("address", e.target.value)}
-                                //   className="h-10 bg-gray-5 border-gray-30 rounded-lg"
-                                // />
-                                  <></>
-                              ) : (
+                              {isEditing ? (<></>) : (
                                 <p className="text-gray-60">{operatorData?.address}</p>
                               )}
                             </div>
@@ -468,56 +381,6 @@ export const OperatorDetails = (): JSX.Element => {
                       </div>
                     </div>
                   )}
-
-                  {/*{activeTab === "games" && (*/}
-                  {/*  <div>*/}
-                  {/*    <div className="flex items-center justify-between mb-6">*/}
-                  {/*      <h3 className="text-lg font-bold text-gray-80">Games Portfolio</h3>*/}
-                  {/*      <Button className="bg-primary-500 hover:bg-primary-600 text-white h-10">*/}
-                  {/*        Add New Game*/}
-                  {/*      </Button>*/}
-                  {/*    </div>*/}
-
-                  {/*    <div className="space-y-4">*/}
-                  {/*      {gamesList.map((game) => (*/}
-                  {/*        <div key={game.id} className="flex items-center justify-between p-4 bg-gray-5 rounded-lg">*/}
-                  {/*          <div className="flex items-center gap-4">*/}
-                  {/*            <div className="w-12 h-12 bg-primary-500 rounded-lg flex items-center justify-center">*/}
-                  {/*              <Activity className="w-6 h-6 text-white" />*/}
-                  {/*            </div>*/}
-                  {/*            <div>*/}
-                  {/*              <h4 className="font-semibold text-gray-80">{game.name}</h4>*/}
-                  {/*              <p className="text-sm text-gray-60">{game.type}</p>*/}
-                  {/*            </div>*/}
-                  {/*          </div>*/}
-                  {/*          */}
-                  {/*          <div className="flex items-center gap-6">*/}
-                  {/*            <div className="text-center">*/}
-                  {/*              <p className="text-sm text-gray-60">Players</p>*/}
-                  {/*              <p className="font-semibold text-gray-80">{game.players}</p>*/}
-                  {/*            </div>*/}
-                  {/*            <div className="text-center">*/}
-                  {/*              <p className="text-sm text-gray-60">Revenue</p>*/}
-                  {/*              <p className="font-semibold text-gray-80">{game.revenue}</p>*/}
-                  {/*            </div>*/}
-                  {/*            <div className="text-center">*/}
-                  {/*              <p className="text-sm text-gray-60">Growth</p>*/}
-                  {/*              <p className={`font-semibold ${game.growth.startsWith('+') ? 'text-success-50' : 'text-red-500'}`}>*/}
-                  {/*                {game.growth}*/}
-                  {/*              </p>*/}
-                  {/*            </div>*/}
-                  {/*            <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(game.status)}`}>*/}
-                  {/*              {game.status}*/}
-                  {/*            </span>*/}
-                  {/*            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">*/}
-                  {/*              <MoreHorizontal className="w-4 h-4 text-gray-60" />*/}
-                  {/*            </Button>*/}
-                  {/*          </div>*/}
-                  {/*        </div>*/}
-                  {/*      ))}*/}
-                  {/*    </div>*/}
-                  {/*  </div>*/}
-                  {/*)}*/}
 
                   {activeTab === "transactions" && (
                     <div>
@@ -537,7 +400,7 @@ export const OperatorDetails = (): JSX.Element => {
                           { name: "Business Registration Certificate", status: "Verified", date: "2024-01-15" },
                           { name: "Gaming License", status: "Verified", date: "2024-01-20" },
                           { name: "Tax Clearance Certificate", status: "Pending", date: "2024-03-01" },
-                          { name: "Compliance Report Q1 2024", status: "Verified", date: "2024-03-31" }
+                          { name: "Compliance ApiUsage Q1 2024", status: "Verified", date: "2024-03-31" }
                         ].map((doc, index) => (
                           <div key={index} className="flex items-center justify-between p-4 bg-gray-5 rounded-lg">
                             <div className="flex items-center gap-3">
@@ -568,29 +431,6 @@ export const OperatorDetails = (): JSX.Element => {
 
             {/* Sidebar */}
             <div className="space-y-6">
-              {/* Quick Actions */}
-              {/*<div className="bg-white rounded-xl border border-gray-20 p-6">*/}
-              {/*  <h3 className="text-lg font-bold text-gray-80 mb-4">Quick Actions</h3>*/}
-              {/*  <div className="space-y-3">*/}
-              {/*    <Button className="w-full justify-start h-11 bg-primary-500 hover:bg-primary-600 text-white">*/}
-              {/*      <Activity className="w-5 h-5 mr-3" />*/}
-              {/*      Add New Game*/}
-              {/*    </Button>*/}
-              {/*    <Button variant="outline" className="w-full justify-start h-11">*/}
-              {/*      <FileText className="w-5 h-5 mr-3" />*/}
-              {/*      Generate Report*/}
-              {/*    </Button>*/}
-              {/*    <Button variant="outline" className="w-full justify-start h-11">*/}
-              {/*      <Users className="w-5 h-5 mr-3" />*/}
-              {/*      View Users*/}
-              {/*    </Button>*/}
-              {/*    <Button variant="outline" className="w-full justify-start h-11">*/}
-              {/*      <DollarSign className="w-5 h-5 mr-3" />*/}
-              {/*      View Transactions*/}
-              {/*    </Button>*/}
-              {/*  </div>*/}
-              {/*</div>*/}
-
               {/* Recent Activity */}
               <div className="bg-white rounded-xl border border-gray-20 p-6">
                 <h3 className="text-lg font-bold text-gray-80 mb-4">Recent Activity</h3>
