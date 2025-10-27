@@ -37,6 +37,7 @@ export interface FilterRequest {
     lga?: string;
     operatorPublicId?: string;
     status?: string;
+    stateCode?: string;
     sort?: string;
     createdFrom?: string;
     createdTo?: string;

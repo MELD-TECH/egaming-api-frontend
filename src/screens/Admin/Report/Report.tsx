@@ -226,11 +226,7 @@ export const Report = (): JSX.Element => {
                 Generate and manage comprehensive reports for all gaming operations
               </p>
             </div>
-            
-            {/* <Button className="bg-primary-500 hover:bg-primary-600 text-white h-12 px-6 rounded-full">
-              <Download className="w-4 h-4 mr-2" />
-              Generate New Report
-            </Button> */}
+
           </div>
 
           {/* Stats Overview */}
