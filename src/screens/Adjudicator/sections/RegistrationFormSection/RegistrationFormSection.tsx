@@ -45,12 +45,18 @@ export const RegistrationFormSection = (): JSX.Element => {
 
 
     const onVerifyClick = async () => {
+        let regNum: string = brn.trim();
         if (!brn.trim()) {
             show({ title: "Missing BRN", message: "Please enter your registration number first.", type: "error" });
             return;
         }
+        if(/^(rc|Rc|rC|RC)/.test(brn)) {
+            regNum = brn.replace(/^(rc|Rc|rC|RC)/, "RC");
+        }else if(/^(bn|Bn|bN|BN)/.test(brn)) {
+            regNum = brn.replace(/^(bn|Bn|bN|BN)/, "BN");
+        }
         try {
-            const body: OperatorVerificationRequest = { firstname: '', lastname: '', phone_no: '', regNumber: brn }
+            const body: OperatorVerificationRequest = { firstname: '', lastname: '', phone_no: '', regNumber: regNum }
             setIsVerifying(true);
             const resp = await verifyBusinessRegistration(body, 'CAC');
             const verification = resp?.data;
