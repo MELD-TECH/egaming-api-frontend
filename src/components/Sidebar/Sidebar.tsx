@@ -9,7 +9,7 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  // MapPin,
+  MapPin,
   // ChevronDown,
   // ChevronUp
 } from 'lucide-react';
@@ -67,12 +67,13 @@ const navigationItems = [
         id: 'api-dashboard',
         access: false
   },
-  // {
-  //   title: 'LGA',
-  //   icon: MapPin,
-  //   path: '/lga',
-  //   id: 'lga'
-  // },
+  {
+    title: 'LGA',
+    icon: MapPin,
+    path: '/lga',
+    id: 'lga',
+    access: true
+  },
   // {
   //   title: 'Team',
   //   icon: UserCheck,
@@ -124,7 +125,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             ['CAN_VIEW_MINI_REPORTS'], ['CAN_VIEW_APPLICATIONS'], ['CAN_VIEW_DASHBOARD'], ['CAN_VIEW_SETTINGS']];
         let index = 0;
         for(const navItem in navigationItems ) {
-            if(navigationItems[navItem].id === 'settings') continue;
+            if(navigationItems[navItem].id === 'settings' || navigationItems[navItem].id === 'lga') continue;
             navigationItems[navItem].access = hasPermission({anyOf: privileges[index++]});
         }
     }, [navigationItems]);

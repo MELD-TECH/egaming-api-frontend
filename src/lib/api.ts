@@ -30,7 +30,7 @@ import {
     MonthlyDataResponse
 } from './models';
 import {getBase64Image} from "./uploaders.ts";
-import {OperatorData, TransactionData} from "./appModels.ts";
+import {Lga, OperatorData, TransactionData} from "./appModels.ts";
 
 export { httpGet, httpPost, httpPut, httpPatch, httpDelete, ApiError, setAuthToken, clearAuthToken, setAppInfo, clearAllAppInfo  };
 export type { ApiResponse };
@@ -42,7 +42,7 @@ let APP_ID = import.meta.env.VITE_APPLICATION_ID;
 // @ts-ignore
 let LOGIN_URL = `${import.meta.env.VITE_AUTH_BASE_URL}/login?appId=${APP_ID}&error`;
 // @ts-ignore
-const STATE_CODE = import.meta.env.VITE_STATE_CODE;
+export const STATE_CODE = import.meta.env.VITE_STATE_CODE;
 // @ts-ignore
 const SERVER_SECRET_KEY = import.meta.env.VITE_SERVER_SK;
 
@@ -69,6 +69,7 @@ const UPLOAD_DOCUMENT_URL =  `/v1/documents/upload`;
 
 // State Service Endpoints
 const GET_LGA_URL =  `/region/api/v1/lgas?stateCode=${STATE_CODE}&size=`;
+const GET_LGA_WITH_QUERIES_URL =  `/region/api/v1/lgas`;
 const OPERATOR_URL =  `/platform/api/v1/operators`;
 const OPERATORS_METRICS_URL =  `/platform/api/v1/metrics/operators`;
 const OPERATOR_METRICS_URL =  `/platform/api/v1/metrics/summary/by-operator/`;
@@ -148,6 +149,10 @@ export async function getLGAs(size: number) {
     return httpGet<LgaResponse>(`${GET_LGA_URL}${size}`, { base: 'api', withAuth: false });
 }
 
+export async function fetchLGAs(query: string) {
+    return httpGet<GenericResponse<Lga>>(`${GET_LGA_WITH_QUERIES_URL}?${query}`, { base: 'api', withAuth: false });
+}
+
 // Add New Operator
 export async function addOperator(body: CompanyRequest) {
     return httpPost<CompanyResponse, CompanyRequest>(OPERATOR_URL, body,{ base: 'api' });
@@ -198,6 +203,7 @@ export async function fetchWinningTransactions(queryString: string) {
     return httpGet<GenericResponse<TransactionData>>(`${WINNING_TRANSACTIONS_URL}?${queryString}`, { base: 'api' });
 }
 
+// Metrics, Analytics, and Trends
 export async function fetchTrendSeries(queryString: string) {
     return httpGet<TrendSeriesResponse>(`${TREND_SERIES_URL}?${queryString}`, { base: 'api' });
 }
@@ -206,6 +212,13 @@ export async function fetchPerformanceDistribution(queryString: string) {
     return httpGet<PerformanceDistributionResponse>(`${DISTRIBUTION_URL}?${queryString}`, { base: 'api' });
 }
 
+export async function monthWiseMetrics(queryString: string) {
+    return httpGet<MonthlyDataResponse>(`${MONTH_WISE_METRICS_URL}?${queryString}`, { base: 'api' });
+}
+
+// API Key Management
+// @ts-ignore
+const API_KEY_URL = `${import.meta.env.VITE_API_KEY_BASE_URL}/api/v1/clients`;
 export async function fetchApiKeyUsageSummary() {
     return httpGet<ApiKeyUsageSummaryResponse>(API_KEY_USAGE_SUMMARY_URL, { base: 'api' });
 }
@@ -229,8 +242,4 @@ export async function createApiKeyClient(body: ApiKeyRequest) {
 
 export async function rotateApiKeyClient(publicId: string | undefined) {
     return httpPost<ApiKeyResponse>(`${API_KEY_CLIENT_URL}/${publicId}/rotate-key`, {}, { base: 'api' });
-}
-
-export async function monthWiseMetrics(queryString: string) {
-    return httpGet<MonthlyDataResponse>(`${MONTH_WISE_METRICS_URL}?${queryString}`, { base: 'api' });
 }
