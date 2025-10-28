@@ -66,6 +66,8 @@ jobs:
 
       - name: Prepare SSH key
         run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
           install -m 600 /dev/null ~/.ssh/id_deploy
           printf "%s" "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_deploy
           ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts
