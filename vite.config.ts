@@ -11,4 +11,7 @@ export default defineConfig({
       plugins: [tailwind()],
     },
   },
+  build: {
+        target: 'esnext', // or 'es2022'
+  },
 });
