@@ -175,7 +175,7 @@ export const Dashboard = (): JSX.Element => {
                         <GroupedBarChart
                             title="Stakes Data Overtime"
                             data={reportData(stakes)}
-                            formatAmount={(v) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(v)}
+                            formatAmount={(v) => new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(v)}
                         />
                     </div>
 
@@ -183,7 +183,7 @@ export const Dashboard = (): JSX.Element => {
                         <GroupedBarChart
                             title="Winings Data Overtime"
                             data={reportData(winnings)}
-                            formatAmount={(v) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(v)}
+                            formatAmount={(v) => new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(v)}
                         />
                     </div>
                 </div>
