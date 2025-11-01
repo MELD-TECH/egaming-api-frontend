@@ -63,6 +63,7 @@ export const Login = (): JSX.Element => {
         // This help solves the auth code needed after a failed login attempt
         setHasError(getAppInfo('hasError') !== null);
         const isErr = searchParams.get('error') !== null;
+        alert(isApp);
         if(isErr) {
             setAppInfo("hasError", "true");
             navigate('/');
