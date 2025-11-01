@@ -10,9 +10,11 @@ import {AlertCard} from "../../../components/feedback/AlertCard.tsx";
 import {useToast} from "../../../components/feedback/Toast.tsx";
 import { getAppInfo } from "../../../lib/httpClient.ts";
 import {RefreshedView} from "../../../components/RefreshedView/RefreshedView.tsx";
+import {useRefresh} from "../../../lib/store.ts";
 
 
 export const Login = (): JSX.Element => {
+  const { hardRefresh } = useRefresh();
   const [searchParams] = useSearchParams();
   const formRef = useRef(null);
   const {show} = useToast();
@@ -65,7 +67,7 @@ export const Login = (): JSX.Element => {
             navigate('/');
         }
         if(!isApp) {
-            navigate('/');
+            hardRefresh();
         }else {
             setNotReady(false);
         }
