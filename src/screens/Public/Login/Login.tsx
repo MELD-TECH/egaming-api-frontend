@@ -10,7 +10,8 @@ import {AlertCard} from "../../../components/feedback/AlertCard.tsx";
 import {useToast} from "../../../components/feedback/Toast.tsx";
 import { getAppInfo } from "../../../lib/httpClient.ts";
 import {RefreshedView} from "../../../components/RefreshedView/RefreshedView.tsx";
-import {useRefresh} from "../../../lib/store.ts";
+import {useRefresh} from "../../../lib/hooks.ts";
+
 
 
 export const Login = (): JSX.Element => {
@@ -224,7 +225,7 @@ export const Login = (): JSX.Element => {
               </button>
             </p>
           </div>
-         <RefreshedView />
+         {/*<RefreshedView />*/}
         </form>
 
         {/* Footer */}
