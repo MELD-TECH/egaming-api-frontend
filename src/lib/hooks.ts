@@ -22,8 +22,8 @@ export const useRefresh = () => {
     }, []);
 
     // Hard reload (full browser reload)
-    const hardRefresh = useCallback(() => {
-        window.location.reload();
+    const hardRefresh = useCallback((url: string) => {
+        window.location.replace(url);
     }, []);
 
     return { softRefresh, hardRefresh };
