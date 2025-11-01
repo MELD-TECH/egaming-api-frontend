@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import {OperatorData} from "./appModels.ts";
 import {fetchOperatorByToken} from "./api.ts";
 
@@ -22,3 +23,19 @@ async function setInMemoryOperator(): Promise<OperatorData | null> {
             return null;
         }
 }
+
+export const useRefresh = () => {
+
+    // Soft refresh (reset React state by triggering a "version" change)
+    const softRefresh = useCallback(() => {
+        window.dispatchEvent(new Event("app:soft-refresh"));
+    }, []);
+
+    // Hard reload (full browser reload)
+    const hardRefresh = useCallback(() => {
+        window.location.reload();
+    }, []);
+
+    return { softRefresh, hardRefresh };
+};
+
