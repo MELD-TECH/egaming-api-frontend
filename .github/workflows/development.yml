@@ -44,7 +44,7 @@ jobs:
       - name: Build
         # Vite picks .env.production automatically on production builds
         run: |
-           ls -l
+           ls -lart
            npm run build
 
       - name: Upload build artifact
