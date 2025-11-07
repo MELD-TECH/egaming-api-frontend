@@ -44,7 +44,6 @@ jobs:
       - name: Build
         # Vite picks .env.production automatically on production builds
         run: |
-           ls -lart
            mv .env.development .env
            npm run build
 
