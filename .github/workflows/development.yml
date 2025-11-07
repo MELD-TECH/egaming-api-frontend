@@ -2,7 +2,7 @@ name: Build and Deploy to EC2 (Vite)
 
 on:
   push:
-    branches: [ "develop" ]
+    branches: [ "development" ]
   workflow_dispatch: {}
 
 jobs:
@@ -27,7 +27,7 @@ jobs:
       # If you don’t need overrides, you can remove this step.
       - name: Create .env.dev from secrets
         run: |
-          cat > .env.dev << 'EOF'
+          cat > .env.development << 'EOF'
           VITE_AUTH_BASE_URL=${{ secrets.DEV_VITE_AUTH_BASE_URL }}
           VITE_API_BASE_URL=${{ secrets.DEV_VITE_API_BASE_URL }}
           VITE_USER_API_BASE_URL=${{ secrets.DEV_VITE_USER_API_BASE_URL }}
