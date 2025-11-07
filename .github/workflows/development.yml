@@ -25,7 +25,7 @@ jobs:
 
       # Optional: override env for production using repo secrets
       # If you don’t need overrides, you can remove this step.
-      - name: Create .env.dev from secrets
+      - name: Create .env.development from secrets
         run: |
           cat > .env.development << 'EOF'
           VITE_AUTH_BASE_URL=${{ secrets.DEV_VITE_AUTH_BASE_URL }}
@@ -43,7 +43,9 @@ jobs:
 
       - name: Build
         # Vite picks .env.production automatically on production builds
-        run: npm run build
+        run: |
+           mv .env.development .env
+           npm run build
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
