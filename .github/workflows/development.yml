@@ -42,10 +42,10 @@ jobs:
         shell: bash
 
       - name: Build
-        env:
-          NODE_ENV: development
         # Vite picks .env.production automatically on production builds
-        run: npm run build
+        run: |
+           ls -l
+           npm run build
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
